@@ -1,31 +1,37 @@
-classdef ERK < SSPTools.Integrators.RK
+classdef IMEXRK < SSPTools.Integrators.RK
     
     properties
-        
+       At; bt; ct;
     end
     
     properties ( Access = private)
-        isExplicit = true;
+        isExplicit = false;
         isMSRK = true; 	% Multi-Stage Runge-Kutta
         isButcher = true; % starting with Butcher formulation
         isLowStorage = false;  % need a way to determine is low-storage
         n;
         Y;
+        isImplicitLinear = true; %so far handling linear advection
     end
     
     methods
         
-        function obj = ERK(varargin)
+        function obj = IMEXRK(varargin)
             obj = obj@SSPTools.Integrators.RK(varargin{:});
             
             p = inputParser;
             p.KeepUnmatched = true;
-            addParamValue(p,'name','MSRK-ERK');
+            addParamValue(p,'name','MSRK-DIRK');
             addParamValue(p, 'isSSP', false);
             addParamValue(p, 'isButcher', true);
+            addParamValue(p, 'At', []);
+            addParamValue(p, 'bt', []);
             addParamValue(p, 'isLowStorage', false);
             p.parse(varargin{:});
 
+            obj.At = p.Results.At;
+            obj.bt = p.Results.bt;
+            obj.ct = sum(obj.A,2);
             obj.name = p.Results.name;  
             obj.n = size(obj.y0,1);
             obj.Y = zeros(obj.n, obj.s);
@@ -34,7 +40,7 @@ classdef ERK < SSPTools.Integrators.RK
         
     end
     
-    methods %( Access = protected )
+    methods
         function [y] = takeStep(obj, dt)
             
             %check to see if CFL violation
@@ -61,6 +67,18 @@ classdef ERK < SSPTools.Integrators.RK
             end
             
             obj.y0 = y;
+            
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function  y = linearImplicitStage( y )
+        
+        end
+        
+        function y = nonlinearImplicitStage( y )
             
         end
         

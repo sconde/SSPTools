@@ -6,7 +6,7 @@ classdef Discretize < handle
     end
     
     methods
-        function obj = Discretizer()
+        function obj = Discretize()
             
         end
     end

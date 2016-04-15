@@ -1,15 +1,17 @@
 classdef DIRK < SSPTools.Integrators.RK
     
     properties
-        A = []; b = []; c = []; alpha = []; s = []; r = [];
+        
+    end
+    
+    properties ( Access = private)
         isExplicit = false;
-        isDIRK = true;
         isMSRK = true; 	% Multi-Stage Runge-Kutta
         isButcher = true; % starting with Butcher formulation
-        isSSP = false;
         isLowStorage = false;  % need a way to determine is low-storage
-        steps = 1; % single-step methods
         n;
+        Y;
+        isImplicitLinear = true; %so far handling linear advection
     end
     
     methods
@@ -19,38 +21,15 @@ classdef DIRK < SSPTools.Integrators.RK
             
             p = inputParser;
             p.KeepUnmatched = true;
-            addParamValue(p,'name','MSRK-ERK');
-            addParamValue(p, 'A', []);
-            addParamValue(p, 'b', []);
-            addParamValue(p, 's', []);
-            addParamValue(p, 'r', []);
-            addParamValue(p, 'alpha', []);
+            addParamValue(p,'name','MSRK-DIRK');
             addParamValue(p, 'isSSP', false);
             addParamValue(p, 'isButcher', true);
             addParamValue(p, 'isLowStorage', false);
-            addParamValue(p, 'dydt', []);
-            addParamValue(p, 'y0', []);
             p.parse(varargin{:});
-                        
-            assert(isequal(p.Results.s, size(p.Results.A,1)),...
-                sprintf('ERK A:Stage-count -- Num-Rows(A) != %d',p.Results.s));
-            
-            obj.A = p.Results.A;
-            obj.b = p.Results.b;
-            obj.c = sum(obj.A,2);
-            obj.s = p.Results.s;
-            obj.alpha = p.Results.alpha;
-            obj.name = p.Results.name;
-            
-            if isa(p.Results.dydt, 'function_handle')
-                obj.dydt = p.Results.dydt;
-            end
-            
-            if ~isempty(p.Results.y0)
-                obj.y0 = p.Results.y0(:);
-                obj.n = size(obj.y0,1);
-            end
-                
+
+            obj.name = p.Results.name;  
+            obj.n = size(obj.y0,1);
+            obj.Y = zeros(obj.n, obj.s);
         end
         
         
@@ -59,24 +38,27 @@ classdef DIRK < SSPTools.Integrators.RK
     methods %( Access = protected )
         function [y] = takeStep(obj, dt)
             
+            %check to see if CFL violation
+            assert((dt/obj.dx) <= obj.CFL, ...
+                sprintf('ERK: CFL Violation (CFL = %3.2f )',dt/obj.dx) );
+            
             u0 = obj.y0;
-            Y = zeros(obj.s, obj.n);
-            Y(1) = u0;
+            obj.Y(:,1) = u0;
             
             % intermediate stage value
             for i = 2:obj.s-1
                 
                 temp = u0;
                 for j = 1:i-1
-                    temp = temp + dt*obj.A(i,i)*obj.dydt(dt + obj.c(j), Y(j));
+                    temp = temp + dt*obj.A(i,i)*obj.L(dt + obj.c(j), obj.Y(:,j));
                 end
-                Y(i) = temp;
+                obj.Y(:,i) = temp;
             end
             
             % combine
             y = u0;
             for i = 1:obj.s
-                y = y + dt*obj.b(i)*obj.dydt(dt+obj.c(i), Y(i));
+                y = y + dt*obj.b(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
             end
             
             obj.y0 = y;
@@ -85,8 +67,17 @@ classdef DIRK < SSPTools.Integrators.RK
         
     end
     
-    methods ( Access = private )
+    methods (Access = private)
         
+        function  y = linearImplicitStage( y )
+        
+        end
+        
+        function y = nonlinearImplicitStage( y )
+            
+        end
         
     end
+    
+
 end
