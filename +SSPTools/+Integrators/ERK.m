@@ -49,7 +49,7 @@ classdef ERK < SSPTools.Integrators.RK
                 
                 temp = u0;
                 for j = 1:i-1
-                    temp = temp + dt*obj.A(i,i)*obj.L(dt + obj.c(j), obj.Y(:,j));
+                    temp = temp + dt*obj.A(i,j)*obj.L(dt + obj.c(j), obj.Y(:,j));
                 end
                 obj.Y(:,i) = temp;
             end

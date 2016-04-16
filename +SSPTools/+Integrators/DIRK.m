@@ -11,7 +11,6 @@ classdef DIRK < SSPTools.Integrators.RK
         isLowStorage = false;  % need a way to determine is low-storage
         n;
         Y;
-        isImplicitLinear = true; %so far handling linear advection
     end
     
     methods
@@ -30,6 +29,12 @@ classdef DIRK < SSPTools.Integrators.RK
             obj.name = p.Results.name;  
             obj.n = size(obj.y0,1);
             obj.Y = zeros(obj.n, obj.s);
+            
+            if obj.isLinear
+                obj.NL = @linearImplicitStage;
+            else
+                obj.NL = @nonlinearImplicitStage;
+            end
         end
         
         

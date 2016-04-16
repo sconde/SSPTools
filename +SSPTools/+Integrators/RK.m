@@ -2,9 +2,9 @@ classdef RK < handle
     
     properties
         name;			% Name of time-stepping method.
-        dydt;
-        dudx;
-        prb;
+        dfdt;
+        dfdx;
+        ExplicitProblem;
         A = []; b = []; c = []; alpha = []; s = []; r = [];
         t0;
         y0;
@@ -16,6 +16,7 @@ classdef RK < handle
         L;
         CFL;
         dx;
+        isLinear;
     end
     
     methods
@@ -23,9 +24,10 @@ classdef RK < handle
             p = inputParser;
             p.KeepUnmatched = true;
             addParamValue(p,'name','MSRK');
-            addParamValue(p, 'dudx', []);
-            addParamValue(p, 'dydt', []);
-            addParamValue(p, 'problem', []);
+            addParamValue(p, 'dfdx', []);
+            addParamValue(p, 'dfdt', []);
+            addParamValue(p, 'ExplicitProblem', []);
+            addParamValue(p, 'ImplicitProblem', []);
             addParamValue(p, 'A', []);
             addParamValue(p, 'b', []);
             addParamValue(p, 's', []);
@@ -34,8 +36,8 @@ classdef RK < handle
             addParamValue(p, 't0', 0);
             p.parse(varargin{:});
             
-            if isa(p.Results.dydt, 'function_handle')
-                obj.dydt = p.Results.dydt;
+            if isa(p.Results.dfdt, 'function_handle')
+                obj.dydt = p.Results.dfdt;
             end
             
             
@@ -45,7 +47,7 @@ classdef RK < handle
             obj.s = p.Results.s;
             obj.alpha = p.Results.alpha;
             obj.name = p.Results.name;
-            obj.dudx = p.Results.dudx;
+            obj.dfdx = p.Results.dfdx;
             obj.t0 = p.Results.t0;
             assert(isequal(p.Results.s, size(p.Results.A,1)),...
                 sprintf('RK A:Stage-count -- Num-Rows(A) != %d',p.Results.s));
@@ -55,20 +57,21 @@ classdef RK < handle
                 obj.isSSP = true;
             end
             
-            if ~isempty(p.Results.problem)
-                obj.prb = p.Results.problem;
+            if ~isempty(p.Results.ExplicitProblem)
+                obj.ExplicitProblem = p.Results.ExplicitProblem;
             end
             
-            obj.L = @(t,y) obj.dudx.L(obj.prb.f(t, y));
+            obj.L = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t, y));
             
-            if isa(obj.prb.y0, 'function_handle')
-                obj.y0 = obj.prb.y0(obj.dudx.x);
+            if isa(obj.ExplicitProblem.y0, 'function_handle')
+                obj.y0 = obj.ExplicitProblem.y0(obj.dfdx.x);
             else
-                obj.y0 = obj.prb.y0(:);
+                obj.y0 = obj.ExplicitProblem.y0(:);
             end
             
-            obj.CFL = obj.prb.CFL_MAX;
-            obj.dx = obj.dudx.dx;
+            obj.CFL = obj.ExplicitProblem.CFL_MAX;
+            obj.dx = obj.dfdx.dx;
+            obj.isLinear = obj.ExplicitProblem.isLinear;
         end
     end
     

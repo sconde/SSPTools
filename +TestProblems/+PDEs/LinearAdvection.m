@@ -1,32 +1,34 @@
-classdef LinearAdvection < TestProblems.PDES.PDE
+classdef LinearAdvection < handle
     
     properties
-        a;
+       name;
+       f;
+       haveExact = false;
+       eqn;
+       y0;
+       CFL_MAX;
+       isLinear = true;
+       a;
     end
     
     methods
         function obj = LinearAdvection(varargin)
-            obj = obj@TestProblems.PDES.PDE(varargin{:});
-            
-            keyboard
             p = inputParser;
             p.KeepUnmatched = true;
-            addParamValue(p, 'a', 1);
+            
             addParamValue(p, 'y0', []);
+            addParamValue(p, 'a', 1);
             p.parse(varargin{:});
-            
-            obj.a = p.Results.a;
-            obj.y0 = p.Results.y0;
-            obj.flux = @(u) obj.a * u;
-            obj.name = 'Linear-Advection';
-            obj.eqn = 'u_t + a*(u)_x = 0';
-            
-            if isa(obj.y0, 'function_handle')
+            if isa(p.Results.y0, 'function_handle')
+                obj.y0 = p.Results.y0;
                 obj.haveExact = true;
             else
-                obj.y0 = obj.y0(:);
+                obj.y0 = p.Results.y0(:);
             end
+            
+            obj.a = p.Results.a;
+            obj.CFL_MAX = abs(obj.a);
+            obj.f = @(t, u) obj.a *u;
         end
-        
     end
 end
