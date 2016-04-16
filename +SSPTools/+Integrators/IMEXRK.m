@@ -93,7 +93,7 @@ classdef IMEXRK < SSPTools.Integrators.RK
                     temp = temp + dt*obj.A(i,i)*obj.L(dt + obj.c(j), obj.Y(:,j)) + ...
                         dt*obj.At(i,j)*obj.NL(dt + obj.ct(j), obj.Y(:,j));
                 end
-                obj.Y(:,i) = obj.solver(u0,dt, i);
+                obj.Y(:,i) = obj.solver(temp, dt, i);
             end
             
             % combine

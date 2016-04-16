@@ -11,6 +11,11 @@ classdef DIRK < SSPTools.Integrators.RK
         isLowStorage = false;  % need a way to determine is low-storage
         n;
         Y;
+        solver;
+        NL;
+        I;
+        isImplicitLinear;
+        DT;
     end
     
     methods
@@ -29,9 +34,13 @@ classdef DIRK < SSPTools.Integrators.RK
             obj.name = p.Results.name;  
             obj.n = size(obj.y0,1);
             obj.Y = zeros(obj.n, obj.s);
-            
-            if obj.isLinear
-                obj.NL = @linearImplicitStage;
+            obj.I = speye(obj.n);
+            obj.isImplicitLinear = obj.ExplicitProblem.isLinear;
+
+            if obj.isImplicitLinear
+                obj.solver = @(y, dt, i) linearSolve(obj, y, dt,i);
+                obj.DT = obj.dfdx.D;
+                obj.NL = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t,y));
             else
                 obj.NL = @nonlinearImplicitStage;
             end
@@ -48,16 +57,20 @@ classdef DIRK < SSPTools.Integrators.RK
                 sprintf('ERK: CFL Violation (CFL = %3.2f )',dt/obj.dx) );
             
             u0 = obj.y0;
-            obj.Y(:,1) = u0;
+            
+            % first stage implicit solve
+            obj.Y(:,1) = obj.solver(u0,dt, 1);
             
             % intermediate stage value
-            for i = 2:obj.s-1
+            for i = 1:obj.s-1
                 
+                %obj.G(:,i) = obj.dgdx.L(obj.ImplicitProblem.f(dt + obj.ct(i), obj.Y(:,i)));
+
                 temp = u0;
                 for j = 1:i-1
-                    temp = temp + dt*obj.A(i,i)*obj.L(dt + obj.c(j), obj.Y(:,j));
+                    temp = temp + dt*obj.A(i,j)*obj.L(dt + obj.c(j), obj.Y(:,j));
                 end
-                obj.Y(:,i) = temp;
+                obj.Y(:,i) = obj.solver(temp, dt, i);
             end
             
             % combine
@@ -74,8 +87,8 @@ classdef DIRK < SSPTools.Integrators.RK
     
     methods (Access = private)
         
-        function  y = linearImplicitStage( y )
-        
+        function  y = linearSolve(obj, y, dt,i)
+            y = (obj.I - dt*obj.A(i,i)*obj.DT)\y;
         end
         
         function y = nonlinearImplicitStage( y )
