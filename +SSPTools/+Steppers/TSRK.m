@@ -1,5 +1,5 @@
-classdef BDF < handle
-    % BDF stepper
+classdef TSRK < handle
+    % TSRK stepper
     
     properties
         name;			% Name of time-stepping method.
@@ -7,7 +7,7 @@ classdef BDF < handle
     end
     
     properties (Access = protected)
-        steps;
+        steps = 2;
         isSSP;
         L;
         CFL;
@@ -16,7 +16,7 @@ classdef BDF < handle
     end
     
     methods
-        function obj = RK(varargin)
+        function obj = TSRK(varargin)
             p = inputParser;
             p.KeepUnmatched = true;
             addParamValue(p,'name','BDf');
