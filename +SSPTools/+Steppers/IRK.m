@@ -1,4 +1,4 @@
-classdef IRK < SSPTools.Integrators.RK
+classdef IRK < SSPTools.Steppers.RK
     
     properties
         A = []; b = []; c = []; alpha = []; s = []; r = [];
@@ -14,7 +14,7 @@ classdef IRK < SSPTools.Integrators.RK
     methods
         
         function obj = IRK(varargin)
-            obj = obj@SSPTools.Integrators.RK(varargin{:});
+            obj = obj@SSPTools.Steppers.RK(varargin{:});
             
             p = inputParser;
             p.KeepUnmatched = true;
@@ -55,7 +55,7 @@ classdef IRK < SSPTools.Integrators.RK
         
     end
     
-    methods %( Access = protected )
+    methods
         function [y] = takeStep(obj, dt)
             
             u0 = obj.y0;

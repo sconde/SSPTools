@@ -1,4 +1,4 @@
-classdef DIRK < SSPTools.Integrators.RK
+classdef DIRK < SSPTools.Steppers.RK
     
     properties
         
@@ -21,7 +21,7 @@ classdef DIRK < SSPTools.Integrators.RK
     methods
         
         function obj = DIRK(varargin)
-            obj = obj@SSPTools.Integrators.RK(varargin{:});
+            obj = obj@SSPTools.Steppers.RK(varargin{:});
             
             p = inputParser;
             p.KeepUnmatched = true;

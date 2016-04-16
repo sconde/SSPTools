@@ -1,4 +1,4 @@
-classdef IMEXRK < SSPTools.Integrators.RK
+classdef IMEXRK < SSPTools.Steppers.RK
     
     properties
         At; bt; ct; dgdx; dgdt; ImplicitProblem;
@@ -24,7 +24,7 @@ classdef IMEXRK < SSPTools.Integrators.RK
     methods
         
         function obj = IMEXRK(varargin)
-            obj = obj@SSPTools.Integrators.RK(varargin{:});
+            obj = obj@SSPTools.Steppers.RK(varargin{:});
             
             p = inputParser;
             p.KeepUnmatched = true;

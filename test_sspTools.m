@@ -5,7 +5,7 @@ A = [0 0;1 0]; b = [1 0]; s = 2; %TODO: infert s from size(A,1)
 At = [0 0;0 1]; bt = [0 1];
 N = 100;
 
-dt = 1/N;
+dt = 0.001;
 Tfinal = 2;
 t = 0;
 
@@ -14,18 +14,18 @@ f = @(t, u) u;
 
 imp_pro = TestProblems.PDEs.LinearAdvection('y0', y0, 'a', 1);
 exp_pro = TestProblems.PDEs.Burgers('y0', y0);
-%exp_pro = TestProblems.PDEs.BuckleyLeverett('y0', y0);
+exp_pro = TestProblems.PDEs.BuckleyLeverett('y0', y0);
 dfdx = SSPTools.Discretizers.FiniteDifference('N', N, 'domain', [-1, 1],'bc','periodic');
 
-% dudt = SSPTools.Integrators.ERK('A', A, 'b',b, 's', s,...
-%     'dfdx', dfdx, 'ExplicitProblem', exp_pro);
-
-dudt = SSPTools.Integrators.DIRK('A', A, 'b',b, 's', s,...
-    'dfdx', dfdx, 'ExplicitProblem', imp_pro);
-
-% dudt = SSPTools.Integrators.IMEXRK('A', A, 'b',b, 's', s, 'At', At, 'bt', bt, 'dydt', f,...
-%     'dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
-%     'dgdx', dfdx);
+dudt = SSPTools.Steppers.ERK('A', A, 'b',b, 's', s,...
+    'dfdx', dfdx, 'ExplicitProblem', exp_pro);
+% 
+% dudt = SSPTools.Steppers.DIRK('A', A, 'b',b, 's', s,...
+%     'dfdx', dfdx, 'ExplicitProblem', imp_pro);
+% 
+dudt = SSPTools.Steppers.IMEXRK('A', A, 'b',b, 's', s, 'At', At, 'bt', bt, 'dydt', f,...
+    'dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
+    'dgdx', dfdx);
 
 line1 = plot(dfdx.x, dudt.y0,'-r','linewidth',2);
 axis([-1 1 0 1]);

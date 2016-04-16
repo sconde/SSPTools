@@ -1,4 +1,4 @@
-classdef ERK < SSPTools.Integrators.RK
+classdef ERK < SSPTools.Steppers.RK
     
     properties
         
@@ -16,7 +16,7 @@ classdef ERK < SSPTools.Integrators.RK
     methods
         
         function obj = ERK(varargin)
-            obj = obj@SSPTools.Integrators.RK(varargin{:});
+            obj = obj@SSPTools.Steppers.RK(varargin{:});
             
             p = inputParser;
             p.KeepUnmatched = true;
