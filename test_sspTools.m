@@ -12,22 +12,22 @@ t = 0;
 y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
 f = @(t, u) u;
 
-imp_pro = TestProblems.PDEs.LinearAdvection('y0', y0, 'a', 1);
-exp_pro = TestProblems.PDEs.Burgers('y0', y0);
+imp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
+exp_pro = TestProblems.PDEs.Burgers();
 exp_pro = TestProblems.PDEs.BuckleyLeverett('y0', y0);
 dfdx = SSPTools.Discretizers.FiniteDifference('N', N, 'domain', [-1, 1],'bc','periodic');
 
-dudt = SSPTools.Steppers.ERK('A', A, 'b',b, 's', s,...
-    'dfdx', dfdx, 'ExplicitProblem', exp_pro);
-% 
+% dudt = SSPTools.Steppers.ERK('A', A, 'b',b, 's', s,...
+%     'dfdx', dfdx, 'ExplicitProblem', exp_pro, 'y0', y0);
+
 % dudt = SSPTools.Steppers.DIRK('A', A, 'b',b, 's', s,...
-%     'dfdx', dfdx, 'ExplicitProblem', imp_pro);
-% 
+%     'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
+
 dudt = SSPTools.Steppers.IMEXRK('A', A, 'b',b, 's', s, 'At', At, 'bt', bt, 'dydt', f,...
     'dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
-    'dgdx', dfdx);
+    'dgdx', dfdx, 'y0',y0);
 
-line1 = plot(dfdx.x, dudt.y0,'-r','linewidth',2);
+line1 = plot(dfdx.x, dudt.y0(dfdx.x),'-r','linewidth',2);
 axis([-1 1 0 1]);
 
 

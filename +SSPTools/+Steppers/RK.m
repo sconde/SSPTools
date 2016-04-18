@@ -17,6 +17,8 @@ classdef RK < handle
         CFL;
         dx;
         isLinear;
+        haveExact = false;
+        x;
     end
     
     methods
@@ -34,10 +36,18 @@ classdef RK < handle
             addParamValue(p, 'r', []);
             addParamValue(p, 'alpha', []);
             addParamValue(p, 't0', 0);
+            addParamValue(p, 'y0', []);
             p.parse(varargin{:});
             
             if isa(p.Results.dfdt, 'function_handle')
                 obj.dydt = p.Results.dfdt;
+            end
+            
+            if isa(p.Results.y0, 'function_handle')
+                obj.y0 = p.Results.y0;
+                obj.haveExact = true;
+            else
+                obj.y0 = p.Results.y0(:);
             end
             
             
@@ -63,14 +73,15 @@ classdef RK < handle
             
             obj.L = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t, y));
             
-            if isa(obj.ExplicitProblem.y0, 'function_handle')
-                obj.y0 = obj.ExplicitProblem.y0(obj.dfdx.x);
-            else
-                obj.y0 = obj.ExplicitProblem.y0(:);
-            end
+%             if isa(obj.ExplicitProblem.y0, 'function_handle')
+%                 obj.y0 = obj.ExplicitProblem.y0(obj.dfdx.x);
+%             else
+%                 obj.y0 = obj.ExplicitProblem.y0(:);
+%             end
             
             obj.CFL = obj.ExplicitProblem.CFL_MAX;
             obj.dx = obj.dfdx.dx;
+            obj.x = p.Results.dfdx.x;
             obj.isLinear = obj.ExplicitProblem.isLinear;
         end
     end

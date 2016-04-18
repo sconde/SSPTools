@@ -11,6 +11,7 @@ classdef ERK < SSPTools.Steppers.RK
         isLowStorage = false;  % need a way to determine is low-storage
         n;
         Y;
+        u0;
     end
     
     methods
@@ -27,8 +28,14 @@ classdef ERK < SSPTools.Steppers.RK
             p.parse(varargin{:});
 
             obj.name = p.Results.name;  
-            obj.n = size(obj.y0,1);
+            obj.n = size(obj.x,1);
             obj.Y = zeros(obj.n, obj.s);
+            if isa(obj.y0, 'function_handle')
+                obj.u0 = obj.y0(obj.x);
+            else
+                obj.u0 = obj.y0;
+            end
+            
         end
         
         
@@ -41,7 +48,7 @@ classdef ERK < SSPTools.Steppers.RK
             assert((dt/obj.dx) <= obj.CFL, ...
                 sprintf('ERK: CFL Violation (CFL = %3.2f )',dt/obj.dx) );
             
-            u0 = obj.y0;
+            u0 = obj.u0;
             obj.Y(:,1) = u0;
             
             % intermediate stage value
@@ -60,7 +67,7 @@ classdef ERK < SSPTools.Steppers.RK
                 y = y + dt*obj.b(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
             end
             
-            obj.y0 = y;
+            obj.u0 = y;
             
         end
         

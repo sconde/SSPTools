@@ -19,6 +19,7 @@ classdef IMEXRK < SSPTools.Steppers.RK
         DT;
         solver;
         I;
+        u0;
     end
     
     methods
@@ -42,7 +43,7 @@ classdef IMEXRK < SSPTools.Steppers.RK
             obj.bt = p.Results.bt;
             obj.ct = sum(obj.A,2);
             obj.name = p.Results.name;
-            obj.n = size(obj.y0,1);
+            obj.n = size(obj.x,1);
             obj.I = speye(obj.n);
             obj.Y = zeros(obj.n, obj.s);
             obj.F = zeros(obj.n, obj.s);
@@ -64,6 +65,19 @@ classdef IMEXRK < SSPTools.Steppers.RK
             else
                 obj.NL = @nonlinearImplicitStage;
             end
+            
+            if isa(obj.y0, 'function_handle')
+                obj.u0 = obj.y0(obj.x);
+            else
+                obj.u0 = obj.y0;
+            end
+            
+            if isa(obj.y0, 'function_handle')
+                obj.u0 = obj.y0(obj.x);
+            else
+                obj.u0 = obj.y0;
+            end
+            
         end
         
         
@@ -76,7 +90,7 @@ classdef IMEXRK < SSPTools.Steppers.RK
             assert((dt/obj.dx) <= obj.CFL, ...
                 sprintf('ERK: CFL Violation (CFL = %3.2f )',dt/obj.dx) );
             
-            u0 = obj.y0;
+            u0 = obj.u0;
             
             % first stage implicit solve
             obj.Y(:,1) = obj.solver(u0,dt, 1);
@@ -90,8 +104,8 @@ classdef IMEXRK < SSPTools.Steppers.RK
                 
                 temp = u0;
                 for j = 1:i-1
-                    temp = temp + dt*obj.A(i,i)*obj.L(dt + obj.c(j), obj.Y(:,j)) + ...
-                        dt*obj.At(i,j)*obj.NL(dt + obj.ct(j), obj.Y(:,j));
+                    temp = temp + dt*obj.A(i,i)*obj.F(:,i) + ...
+                        dt*obj.At(i,j)*obj.G(:,i);
                 end
                 obj.Y(:,i) = obj.solver(temp, dt, i);
             end
@@ -103,7 +117,7 @@ classdef IMEXRK < SSPTools.Steppers.RK
                     dt*obj.bt(i)*obj.NL(dt + obj.ct(i), obj.Y(:,i));
             end
             
-            obj.y0 = y;
+            obj.u0 = y;
             
         end
         
