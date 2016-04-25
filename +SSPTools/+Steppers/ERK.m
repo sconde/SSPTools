@@ -11,7 +11,6 @@ classdef ERK < SSPTools.Steppers.RK
         isLowStorage = false;  % need a way to determine is low-storage
         n;
         Y;
-        u0;
     end
     
     methods
@@ -36,12 +35,14 @@ classdef ERK < SSPTools.Steppers.RK
                 obj.u0 = obj.y0;
             end
             
+            
         end
         
         
     end
     
     methods %( Access = protected )
+        
         function [y] = takeStep(obj, dt)
             
             %check to see if CFL violation
@@ -68,7 +69,7 @@ classdef ERK < SSPTools.Steppers.RK
             end
             
             obj.u0 = y;
-            
+            obj.t = obj.t + dt;
         end
         
     end

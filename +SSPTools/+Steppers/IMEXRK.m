@@ -19,7 +19,6 @@ classdef IMEXRK < SSPTools.Steppers.RK
         DT;
         solver;
         I;
-        u0;
     end
     
     methods
@@ -37,6 +36,7 @@ classdef IMEXRK < SSPTools.Steppers.RK
             addParamValue(p, 'bt', []);
             addParamValue(p, 'isLowStorage', false);
             addParamValue(p, 'dgdx', []);
+            addParamValue(p, 't', 0.0);
             p.parse(varargin{:});
             
             obj.At = p.Results.At;
@@ -48,6 +48,7 @@ classdef IMEXRK < SSPTools.Steppers.RK
             obj.Y = zeros(obj.n, obj.s);
             obj.F = zeros(obj.n, obj.s);
             obj.G = zeros(obj.n, obj.s);
+            obj.t = p.Results.t;
             
             if ~isempty(p.Results.ImplicitProblem)
                 obj.ImplicitProblem = p.Results.ImplicitProblem;
@@ -84,6 +85,8 @@ classdef IMEXRK < SSPTools.Steppers.RK
     end
     
     methods
+
+
         function [y] = takeStep(obj, dt)
             
             %check to see if CFL violation

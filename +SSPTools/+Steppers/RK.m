@@ -8,6 +8,7 @@ classdef RK < handle
         A = []; b = []; c = []; alpha = []; s = []; r = [];
         t0;
         y0;
+        t;
     end
     
     properties (Access = protected)
@@ -19,6 +20,7 @@ classdef RK < handle
         isLinear;
         haveExact = false;
         x;
+        u0;
     end
     
     methods
@@ -35,6 +37,7 @@ classdef RK < handle
             addParamValue(p, 's', []);
             addParamValue(p, 'r', []);
             addParamValue(p, 'alpha', []);
+            addParamValue(p, 't', 0.0);
             addParamValue(p, 't0', 0);
             addParamValue(p, 'y0', []);
             p.parse(varargin{:});
@@ -51,6 +54,7 @@ classdef RK < handle
             end
             
             
+            obj.t = p.Results.t;
             obj.A = p.Results.A;
             obj.b = p.Results.b;
             obj.c = sum(obj.A,2);
@@ -87,8 +91,16 @@ classdef RK < handle
     end
     
     methods %( Access = protected )
-        function [y] = takeStep(obj, dt)
-            
+        function [y] = takeStep(obj, dt) end
+        
+        function resetInitCondition(obj)
+            obj.u0 = obj.y0(obj.x);
+            obj.t = 0.0;
+        end
+        
+        function [t, y] = getState(obj)
+            y = obj.u0;
+            t = obj.t;
         end
         
     end

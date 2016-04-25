@@ -16,7 +16,6 @@ classdef DIRK < SSPTools.Steppers.RK
         I;
         isImplicitLinear;
         DT;
-        u0;
     end
     
     methods
@@ -30,10 +29,12 @@ classdef DIRK < SSPTools.Steppers.RK
             addParamValue(p, 'isSSP', false);
             addParamValue(p, 'isButcher', true);
             addParamValue(p, 'isLowStorage', false);
+            addParamValue(p, 't', 0.0);
             p.parse(varargin{:});
 
             obj.name = p.Results.name;  
             obj.n = size(obj.x,1);
+            obj.t = p.Results.t;
             obj.Y = zeros(obj.n, obj.s);
             obj.I = speye(obj.n);
             obj.isImplicitLinear = obj.ExplicitProblem.isLinear;
@@ -57,6 +58,8 @@ classdef DIRK < SSPTools.Steppers.RK
     end
     
     methods %( Access = protected )
+
+
         function [y] = takeStep(obj, dt)
             
             %check to see if CFL violation
@@ -87,7 +90,7 @@ classdef DIRK < SSPTools.Steppers.RK
             end
             
             obj.u0 = y;
-            
+            obj.t = obj.t + dt;
         end
         
     end
