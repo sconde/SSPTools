@@ -2,21 +2,21 @@ classdef Convergence < Tests.Test
     
     properties
         refinement_type = 'time';
-        cfl;
+        CFL;
         t;
         dudt; % should be the integrator
         verbose;
         refine_level;
         Tfinal;
+        referenceSolution;
+
     end
     
     properties ( Access = private)
         y0;
-        CFL;
         DT;
         dx;
         u0;
-        referenceSolution;
         L2Error;
         L1Error;
         LinfError;
@@ -28,7 +28,7 @@ classdef Convergence < Tests.Test
             p = inputParser;
             p.KeepUnmatched = true;
             p.addParamValue('refinement_type', []);
-            p.addParamValue('cfl', []);
+            p.addParamValue('CFL', []);
             p.addParamValue('t', 0);
             p.addParamValue('integrator', []);
             p.addParamValue('verbose', 'none'); %TODO: decide if type should be logical instead
@@ -46,10 +46,10 @@ classdef Convergence < Tests.Test
             %             obj.getL2Error = p.Results.L2Error;
             %             obj.
             
-            if ~isempty(p.Results.cfl)
-                obj.cfl = p.Results.cfl;
+            if ~isempty(p.Results.CFL)
+                obj.CFL = p.Results.CFL;
             else
-                obj.cfl = 0.2*(1/2).^(1:obj.refine_level);
+                obj.CFL = 0.2*(1/2).^(1:obj.refine_level);
             end
             
             obj.t = p.Results.t;
@@ -59,8 +59,8 @@ classdef Convergence < Tests.Test
             
             %TODO : a better way to test for the problem
             obj.dudt = p.Results.integrator;
-            obj.DT = obj.dudt.dfdx.dx*obj.cfl;
-            
+            obj.DT = obj.dudt.dfdx.dx*obj.CFL;
+                        
             if isa(obj.dudt.ExplicitProblem,'TestProblems.PDEs.LinearAdvection')
                 obj.referenceSolution = obj.dudt.y0(obj.dudt.dfdx.x - obj.dudt.ExplicitProblem.a * obj.Tfinal);
             else
@@ -91,7 +91,13 @@ classdef Convergence < Tests.Test
                 [t, y] = obj.dudt.getState();
                 assert(isequal(obj.Tfinal, t),'should be calculating error at tfinal');
                 
-                err = abs(y - obj.referenceSolution);
+%                 clf;
+%                 plot(obj.dudt.dfdx.x,y,'-r')
+%                 hold on
+%                 plot(obj.dudt.dfdx.x,obj.referenceSolution,'-k')
+%                 keyboard
+                
+                err = abs(y - obj.referenceSolution); %clear('y');
                 L1Error = [L1Error; norm(err, 1)];
                 L2Error = [L2Error; norm(err, 2)];
                 LinfError = [LinfError; norm(err, 'inf')];
