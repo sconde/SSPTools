@@ -45,6 +45,7 @@ classdef DIRK < SSPTools.Steppers.RK
                 obj.NL = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t,y));
             else
                 obj.NL = @nonlinearImplicitStage;
+                obj.solver = @(y, dt, i) nonlinearImplicitStage( obj, y, dt, i );
             end
             
             if isa(obj.y0, 'function_handle')
@@ -71,7 +72,7 @@ classdef DIRK < SSPTools.Steppers.RK
             u0 = obj.u0;
             
             % first stage implicit solve
-            keyboard
+            %keyboard
             obj.Y(:,1) = obj.solver(u0,dt, 1);
             
             % intermediate stage value
@@ -104,8 +105,11 @@ classdef DIRK < SSPTools.Steppers.RK
             y = (obj.I - dt*obj.A(i,i)*obj.DT)\y;
         end
         
-        function y = nonlinearImplicitStage( y )
-            error('Not yet implimented');
+        function y = nonlinearImplicitStage( obj, y, dt, i )
+            epss = 1e-14;
+            options = optimset('Display','off', 'TolFun',epss, 'TolX',epss);
+            fzero = @(K) (y + dt*obj.A(i,i)*obj.L(dt + obj.c(i), K))  - K;
+            [y, ~] = fsolve(@(Y) fzero(Y), y, options);
         end
         
     end
