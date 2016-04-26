@@ -60,11 +60,22 @@ classdef Convergence < Tests.Test
             %TODO : a better way to test for the problem
             obj.dudt = p.Results.integrator;
             obj.DT = obj.dudt.dfdx.dx*obj.CFL;
-                        
+            
+            odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y));
+                                    
             if isa(obj.dudt.ExplicitProblem,'TestProblems.PDEs.LinearAdvection')
                 obj.referenceSolution = obj.dudt.y0(obj.dudt.dfdx.x - obj.dudt.ExplicitProblem.a * obj.Tfinal);
-            else
+            elseif ~isa(obj.dudt, 'SSPTools.Steppers.IMEXRK')
                 % use ODE45 to get the solution vector
+                % is not using IMEXRK
+                epss = 1e-14;
+                ode45_options = odeset('RelTol',epss,'AbsTol',epss);
+                [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
+                    obj.dudt.y0(obj.dudt.dfdx.x),ode45_options);
+                sol = sol(end,:); sol = sol(:);
+                obj.referenceSolution = sol;
+                
+            else
                 error('not yet implemented');
             end
         end
@@ -96,7 +107,6 @@ classdef Convergence < Tests.Test
 %                 hold on
 %                 plot(obj.dudt.dfdx.x,obj.referenceSolution,'-k')
 %                 keyboard
-                
                 err = abs(y - obj.referenceSolution); %clear('y');
                 L1Error = [L1Error; norm(err, 1)];
                 L2Error = [L2Error; norm(err, 2)];
@@ -207,6 +217,10 @@ keyboard
             
             obj.results = results;
             obj.completed_problems = [ completed_problems{:} ];
+        end
+        
+        function dy = myodefunSpectral(t, y)    
+            dy = lin_func(y) + nonlinear_func(y);  
         end
     end
     
