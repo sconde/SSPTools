@@ -72,7 +72,7 @@ classdef DIRK < SSPTools.Steppers.RK
             obj.Y(:,1) = obj.solver(u0,dt, 1);
             
             % intermediate stage value
-            for i = 1:obj.s-1
+            for i = 1:obj.s
                 
                 %obj.G(:,i) = obj.dgdx.L(obj.ImplicitProblem.f(dt + obj.ct(i), obj.Y(:,i)));
 

@@ -34,8 +34,7 @@ classdef ERK < SSPTools.Steppers.RK
             else
                 obj.u0 = obj.y0;
             end
-            
-            
+
         end
         
         
@@ -53,7 +52,7 @@ classdef ERK < SSPTools.Steppers.RK
             obj.Y(:,1) = u0;
             
             % intermediate stage value
-            for i = 2:obj.s-1
+            for i = 2:obj.s
                 
                 temp = u0;
                 for j = 1:i-1
