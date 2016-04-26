@@ -52,6 +52,8 @@ classdef DIRK < SSPTools.Steppers.RK
             else
                 obj.u0 = obj.y0;
             end
+            
+            assert(~isempty(obj.solver),'Implicit Solver is empty');
         end
         
         
@@ -69,6 +71,7 @@ classdef DIRK < SSPTools.Steppers.RK
             u0 = obj.u0;
             
             % first stage implicit solve
+            keyboard
             obj.Y(:,1) = obj.solver(u0,dt, 1);
             
             % intermediate stage value
@@ -102,7 +105,7 @@ classdef DIRK < SSPTools.Steppers.RK
         end
         
         function y = nonlinearImplicitStage( y )
-            
+            error('Not yet implimented');
         end
         
     end
