@@ -18,17 +18,17 @@ classdef IRK < SSPTools.Steppers.RK
             
             p = inputParser;
             p.KeepUnmatched = true;
-            addParamValue(p,'name','MSRK-ERK');
-            addParamValue(p, 'A', []);
-            addParamValue(p, 'b', []);
-            addParamValue(p, 's', []);
-            addParamValue(p, 'r', []);
-            addParamValue(p, 'alpha', []);
-            addParamValue(p, 'isSSP', false);
-            addParamValue(p, 'isButcher', true);
-            addParamValue(p, 'isLowStorage', false);
-            addParamValue(p, 'dydt', []);
-            addParamValue(p, 'y0', []);
+            addParameter(p,'name','MSRK-ERK');
+            addParameter(p, 'A', []);
+            addParameter(p, 'b', []);
+            addParameter(p, 's', []);
+            addParameter(p, 'r', []);
+            addParameter(p, 'alpha', []);
+            addParameter(p, 'isSSP', false);
+            addParameter(p, 'isButcher', true);
+            addParameter(p, 'isLowStorage', false);
+            addParameter(p, 'dydt', []);
+            addParameter(p, 'y0', []);
             p.parse(varargin{:});
                         
             assert(isequal(p.Results.s, size(p.Results.A,1)),...

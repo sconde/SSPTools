@@ -20,10 +20,10 @@ classdef ERK < SSPTools.Steppers.RK
             
             p = inputParser;
             p.KeepUnmatched = true;
-            addParamValue(p,'name','MSRK-ERK');
-            addParamValue(p, 'isSSP', false);
-            addParamValue(p, 'isButcher', true);
-            addParamValue(p, 'isLowStorage', false);
+            addParameter(p,'name','MSRK-ERK');
+            addParameter(p, 'isSSP', false);
+            addParameter(p, 'isButcher', true);
+            addParameter(p, 'isLowStorage', false);
             p.parse(varargin{:});
 
             obj.name = p.Results.name;  

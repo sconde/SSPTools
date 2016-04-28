@@ -27,19 +27,19 @@ classdef RK < handle
         function obj = RK(varargin)
             p = inputParser;
             p.KeepUnmatched = true;
-            addParamValue(p,'name','MSRK');
-            addParamValue(p, 'dfdx', []);
-            addParamValue(p, 'dfdt', []);
-            addParamValue(p, 'ExplicitProblem', []);
-            addParamValue(p, 'ImplicitProblem', []);
-            addParamValue(p, 'A', []);
-            addParamValue(p, 'b', []);
-            addParamValue(p, 's', []);
-            addParamValue(p, 'r', []);
-            addParamValue(p, 'alpha', []);
-            addParamValue(p, 't', 0.0);
-            addParamValue(p, 't0', 0);
-            addParamValue(p, 'y0', []);
+            addParameter(p,'name','MSRK');
+            addParameter(p, 'dfdx', []);
+            addParameter(p, 'dfdt', []);
+            addParameter(p, 'ExplicitProblem', []);
+            addParameter(p, 'ImplicitProblem', []);
+            addParameter(p, 'A', []);
+            addParameter(p, 'b', []);
+            addParameter(p, 's', []);
+            addParameter(p, 'r', []);
+            addParameter(p, 'alpha', []);
+            addParameter(p, 't', 0.0);
+            addParameter(p, 't0', 0);
+            addParameter(p, 'y0', []);
             p.parse(varargin{:});
             
             if isa(p.Results.dfdt, 'function_handle')

@@ -25,11 +25,11 @@ classdef DIRK < SSPTools.Steppers.RK
             
             p = inputParser;
             p.KeepUnmatched = true;
-            addParamValue(p,'name','MSRK-DIRK');
-            addParamValue(p, 'isSSP', false);
-            addParamValue(p, 'isButcher', true);
-            addParamValue(p, 'isLowStorage', false);
-            addParamValue(p, 't', 0.0);
+            addParameter(p,'name','MSRK-DIRK');
+            addParameter(p, 'isSSP', false);
+            addParameter(p, 'isButcher', true);
+            addParameter(p, 'isLowStorage', false);
+            addParameter(p, 't', 0.0);
             p.parse(varargin{:});
 
             obj.name = p.Results.name;  

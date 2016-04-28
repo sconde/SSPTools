@@ -19,8 +19,8 @@ classdef BDF < handle
         function obj = RK(varargin)
             p = inputParser;
             p.KeepUnmatched = true;
-            addParamValue(p,'name','BDf');
-            addParamValue(p, 't0', 0);
+            addParameter(p,'name','BDf');
+            addParameter(p, 't0', 0);
             p.parse(varargin{:});
             
             if isa(p.Results.dfdt, 'function_handle')
