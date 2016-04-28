@@ -6,7 +6,8 @@ Tfinal = 0.2;
 
 %testing = 'ERK';
 %testing = 'DIRK';
-testing = 'IMEXRK';
+%testing = 'IMEXRK';
+testing = 'IMEXRK-SSP11';
 
 
 y0 = @(x) sin(x);
@@ -27,8 +28,8 @@ rk = load([file method]);
 A = rk.A; b = rk.b; s = rk.s;
 At = rk.At; bt = rk.bt;
 
-% A = [0 0;1 0]; b = [1 0]; s = 2; %TODO: infert s from size(A,1)
-% At = [0 0;0 1]; bt = [0 1];
+A = [0]; b = [1]; s = 1; %TODO: infert s from size(A,1)
+At = [1]; bt = [1];
 
 exp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
 exp_pro = TestProblems.PDEs.Burgers();
@@ -45,6 +46,9 @@ elseif strcmpi(testing,'dirk')
 elseif strcmpi(testing, 'imexrk')
     dudt = SSPTools.Steppers.IMEXRK('A', A, 'b',b, 's', s, 'At', At, 'bt', bt,...
         'dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
+        'dgdx', dfdx, 'y0',y0);
+elseif strcmpi(testing, 'imexrk-ssp11')
+    dudt = SSPTools.Steppers.LiteratureMethod('MethodName', 'Stormer-Verlet','dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
         'dgdx', dfdx, 'y0',y0);
 end
 
