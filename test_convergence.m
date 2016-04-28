@@ -10,13 +10,12 @@ testing = 'IMEXRK';
 
 
 y0 = @(x) sin(x);
-f = @(t, u) u;
 
 % LNL-IMEX RK
 pex = 2;
 pim = 2;
-plin = 3;
-s = 3;
+plin = 2;
+s = 5;
 k = 0;
 
 file = sprintf('~/Dropbox/imex-linear/src/butcher-optimization/Method/DIRK/G/Pex%d/Pim%d/Plin%d/S%d/K',...
@@ -34,7 +33,6 @@ At = rk.At; bt = rk.bt;
 exp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
 exp_pro = TestProblems.PDEs.Burgers();
 imp_pro = TestProblems.PDEs.BuckleyLeverett();
-%imp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
 
 dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N);
 
@@ -45,7 +43,7 @@ elseif strcmpi(testing,'dirk')
     dudt = SSPTools.Steppers.DIRK('A', At, 'b',bt, 's', s,...
         'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
 elseif strcmpi(testing, 'imexrk')
-    dudt = SSPTools.Steppers.IMEXRK('A', A, 'b',b, 's', s, 'At', At, 'bt', bt, 'dydt', f,...
+    dudt = SSPTools.Steppers.IMEXRK('A', A, 'b',b, 's', s, 'At', At, 'bt', bt,...
         'dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
         'dgdx', dfdx, 'y0',y0);
 end

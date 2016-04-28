@@ -1,7 +1,7 @@
 classdef Burgers < handle
     
     properties
-       name;
+       name = 'Burgers';
        f = @(t, u) 0.5*(u.^2);
        haveExact = false;
        eqn;

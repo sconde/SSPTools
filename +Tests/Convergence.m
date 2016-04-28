@@ -20,6 +20,7 @@ classdef Convergence < Tests.Test
         L2Error;
         L1Error;
         LinfError;
+        problemName;
     end
     
     methods
@@ -90,6 +91,10 @@ classdef Convergence < Tests.Test
             else
                 error('not yet implemented');
             end
+            
+            obj.problemName = sprintf('%s (Exp) - %s (Imp)',...
+                obj.dudt.ExplicitProblem.name, ...
+                obj.dudt.ImplicitProblem.name);
         end
         
         function run(obj, varargin)
@@ -143,23 +148,11 @@ classdef Convergence < Tests.Test
             Order_l1 = [nan getOrder(obj.L1Error, obj.DT)]';
             Order_l2 = [nan getOrder(obj.L2Error, obj.DT)]';
 
-%TODO: Do I need these?            
-%             order_l2 = polyfit(log(obj.DT(:)), log(Err_l2(:)), 1);
-%             order_l1 = polyfit(log(obj.DT(:)), log(Err_l1(:)), 1);
-%             order_inf = polyfit(log(obj.DT(:)), log(Err_inf(:)), 1);
-            
+            fprintf(fid, '%s (Tfinal = %4.3f)\n\n', obj.problemName, obj.Tfinal);
             order_info= [obj.DT' Order_inf Order_l1 Order_l2];
             fprintf(fid, '%8s \t %9s \t %6s \t %6s\n','DT','L-inf','L1','L2');
             fprintf(fid, '%6.2e \t %6.5f \t %6.5f \t %6.5f\n',order_info(:,:).');
-            
-%             fprintf(fid, '\nPolyfit-Order:\n');
-%             fprintf(fid, 'Order:\t L_inf = %5.3f,\t L_1 = %5.3f, \t L_2 = %5.3f', order_inf(1), order_l1(1), order_l2(1));
-%             
         end
-        
-%         function order = getOrder(err, dt)
-%             order = log(err(2:end)./err(1:end-1))'./log(dt(2:end)./dt(1:end-1));
-%         end
         
     end
     
