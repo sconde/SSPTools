@@ -9,7 +9,7 @@ classdef Convergence < Tests.Test
         refine_level;
         Tfinal;
         referenceSolution;
-
+        epss;
     end
     
     properties ( Access = private)
@@ -27,16 +27,17 @@ classdef Convergence < Tests.Test
             
             p = inputParser;
             p.KeepUnmatched = true;
-            p.addParamValue('refinement_type', []);
-            p.addParamValue('CFL', []);
-            p.addParamValue('t', 0);
-            p.addParamValue('integrator', []);
-            p.addParamValue('verbose', 'none'); %TODO: decide if type should be logical instead
-            p.addParamValue('refine_level', 5);
-            p.addParamValue('Tfinal', 0.1);
-            p.addParamValue('L2Error', true);
-            p.addParamValue('L1Error', true);
-            p.addParamValue('LinfError', true);
+            p.addParameter('refinement_type', []);
+            p.addParameter('CFL', []);
+            p.addParameter('t', 0);
+            p.addParameter('integrator', []);
+            p.addParameter('verbose', 'none'); %TODO: decide if type should be logical instead
+            p.addParameter('refine_level', 5);
+            p.addParameter('Tfinal', 0.1);
+            p.addParameter('L2Error', true);
+            p.addParameter('L1Error', true);
+            p.addParameter('LinfError', true);
+            p.addParameter('NonlinearEps', 1e-14);
             p.parse(varargin{:});
             
             obj = obj@Tests.Test(varargin{:});
@@ -56,20 +57,31 @@ classdef Convergence < Tests.Test
             obj.verbose = p.Results.verbose;
             obj.Tfinal = p.Results.Tfinal;
             obj.refinement_type = p.Results.refinement_type;
+            obj.epss = p.Results.NonlinearEps;
             
             %TODO : a better way to test for the problem
             obj.dudt = p.Results.integrator;
             obj.DT = obj.dudt.dfdx.dx*obj.CFL;
             
-            odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y));
-                                    
-            if isa(obj.dudt.ExplicitProblem,'TestProblems.PDEs.LinearAdvection')
+                             
+            if isa(obj.dudt,'SSPTools.Steppers.IMEXRK')
+                %if IMEX
+                %TODO: implement reference solution for IMEXRK
+                % use ODE45 to get the solution vector
+                ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss); warning('off');
+                odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y)) + obj.dudt.dgdx.L(obj.dudt.ImplicitProblem.f(t,y));
+                [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
+                    obj.dudt.y0(obj.dudt.dfdx.x),ode45_options);
+                sol = sol(end,:); sol = sol(:);
+                obj.referenceSolution = sol;
+                %error('not yet implemented');
+            elseif isa(obj.dudt.ExplicitProblem,'TestProblems.PDEs.LinearAdvection')
                 obj.referenceSolution = obj.dudt.y0(obj.dudt.dfdx.x - obj.dudt.ExplicitProblem.a * obj.Tfinal);
             elseif ~isa(obj.dudt, 'SSPTools.Steppers.IMEXRK')
                 % use ODE45 to get the solution vector
                 % is not using IMEXRK
-                epss = 1e-14;
-                ode45_options = odeset('RelTol',epss,'AbsTol',epss);
+                ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss); warning('off');
+                odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y));
                 [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
                     obj.dudt.y0(obj.dudt.dfdx.x),ode45_options);
                 sol = sol(end,:); sol = sol(:);
@@ -143,7 +155,6 @@ classdef Convergence < Tests.Test
 %             fprintf(fid, '\nPolyfit-Order:\n');
 %             fprintf(fid, 'Order:\t L_inf = %5.3f,\t L_1 = %5.3f, \t L_2 = %5.3f', order_inf(1), order_l1(1), order_l2(1));
 %             
-keyboard
         end
         
 %         function order = getOrder(err, dt)

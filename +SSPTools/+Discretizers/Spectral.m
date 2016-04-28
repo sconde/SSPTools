@@ -19,10 +19,10 @@ classdef Spectral < SSPTools.Discretizers.Discretize
             
             p = inputParser;
             p.KeepUnmatched = true;
-            addParamValue(p, 'x', []);
-            addParamValue(p, 'isSSP', false);
-            addParamValue(p, 'derivativeOrder', 1);
-            addParamValue(p, 'N', 8);
+            addParameter(p, 'x', []);
+            addParameter(p, 'isSSP', false);
+            addParameter(p, 'derivativeOrder', 1);
+            addParameter(p, 'N', 8);
             p.parse(varargin{:});
             
             obj.x = p.Results.x;

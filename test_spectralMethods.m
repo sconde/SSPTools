@@ -17,8 +17,8 @@ imp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
 
 dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N);
 
-    dudt = SSPTools.Steppers.ERK('A', A, 'b',b, 's', s,...
-        'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
+dudt = SSPTools.Steppers.ERK('A', A, 'b',b, 's', s,...
+    'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
 
 line1 = plot(dfdx.x, dudt.y0(dfdx.x),'-r','linewidth',2);
 axis([0 2*pi -1 1]);

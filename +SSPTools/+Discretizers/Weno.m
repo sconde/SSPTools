@@ -14,10 +14,10 @@ classdef Weno < SSPTools.Discretizers.Discretize
             
             p = inputParser;
             p.KeepUnmatched = true;
-            addParamValue(p, 'x', []);
-            addParamValue(p, 'isSSP', true);
-            addParamValue(p, 'derivativeOrder', 1);
-            addParamValue(p, 'bc', 'periodic');
+            addParameter(p, 'x', []);
+            addParameter(p, 'isSSP', true);
+            addParameter(p, 'derivativeOrder', 1);
+            addParameter(p, 'bc', 'periodic');
             p.parse(varargin{:});
             
             obj.x = p.Results.x;

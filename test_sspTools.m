@@ -11,10 +11,11 @@ N = 100;
 dt = 0.01;
 Tfinal = 2;
 t = 0;
+f = @(u) u;
 
 testing = 'ERK';
 %testing = 'DIRK';
-%testing = 'IMEXRK';
+testing = 'IMEXRK';
 
 y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
 y0 = @(x) sin(x);
@@ -37,6 +38,7 @@ elseif strcmpi(testing, 'IMEXRK')
         'dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
         'dgdx', dfdx, 'y0',y0);
 end
+
 
 line1 = plot(dfdx.x, dudt.y0(dfdx.x),'-r','linewidth',2);
 axis([0 2*pi -1 1]);

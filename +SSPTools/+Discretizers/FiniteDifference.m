@@ -17,11 +17,11 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
             
             p = inputParser;
             p.KeepUnmatched = true;
-            addParamValue(p, 'isSSP', true);
-            addParamValue(p, 'derivativeOrder', 1);
-            addParamValue(p, 'bc', 'periodic');
-            addParamValue(p, 'N', 10);
-            addParamValue(p, 'domain', [-1 1]);
+            addParameter(p, 'isSSP', true);
+            addParameter(p, 'derivativeOrder', 1);
+            addParameter(p, 'bc', 'periodic');
+            addParameter(p, 'N', 10);
+            addParameter(p, 'domain', [-1 1]);
             p.parse(varargin{:});
             
             obj.isSSP = p.Results.isSSP;
