@@ -1,6 +1,6 @@
 clear all; close all; clc
 
-
+addpath('../')
 A = [0 0;1 0]; b = [1 0]; s = 2; %TODO: infert s from size(A,1)
 At = [0 0;0 1]; bt = [0 1];
 N = 64;

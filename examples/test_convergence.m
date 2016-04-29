@@ -1,6 +1,6 @@
 clear all; close all; clc
 
-
+addpath('../')
 N = 16;
 Tfinal = 0.4;
 

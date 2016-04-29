@@ -1,6 +1,6 @@
 clear all; close all; clc
 
-
+addpath('../');
 N = 200;
 
 %testing = 'ERK';
