@@ -1,8 +1,7 @@
 clear all; close all; clc
 
 
-N = 16;
-Tfinal = 0.4;
+N = 200;
 
 %testing = 'ERK';
 %testing = 'DIRK';
@@ -10,7 +9,7 @@ Tfinal = 0.4;
 testing = 'IMEXRK-SSP11';
 
 
-y0 = @(x) sin(x);
+y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
 
 % LNL-IMEX RK
 pex = 2;
@@ -31,11 +30,11 @@ At = rk.At; bt = rk.bt;
 A = [0]; b = [1]; s = 1; %TODO: infert s from size(A,1)
 At = [1]; bt = [1];
 
-exp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
+imp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
 exp_pro = TestProblems.PDEs.Burgers();
-imp_pro = TestProblems.PDEs.BuckleyLeverett();
+%imp_pro = TestProblems.PDEs.BuckleyLeverett();
 
-dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N);
+dfdx = SSPTools.Discretizers.FiniteDifference('N', N, 'domain', [-1, 1],'bc','periodic');
 
 if strcmpi(testing, 'erk')
     dudt = SSPTools.Steppers.ERK('A', A, 'b',b, 's', s,...
@@ -52,8 +51,8 @@ elseif strcmpi(testing, 'imexrk-ssp11')
         'dgdx', dfdx, 'y0',y0);
 end
 
-convergencePDE = Tests.Convergence('integrator', dudt,'Tfinal', Tfinal,...
-    'CFL', (1/2).^(1:5));
+convergencePDE = Tests.SSP('integrator', dudt,'Tfinal', Tfinal,...
+    'CFL', 0.2);
 
 convergencePDE.run();
-convergencePDE.complete();
+convergencePDE.plotSolution()
