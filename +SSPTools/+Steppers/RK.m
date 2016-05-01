@@ -52,8 +52,7 @@ classdef RK < handle
             else
                 obj.y0 = p.Results.y0(:);
             end
-            
-            
+                        
             obj.t = p.Results.t;
             obj.A = p.Results.A;
             obj.b = p.Results.b;
@@ -74,18 +73,24 @@ classdef RK < handle
             if ~isempty(p.Results.ExplicitProblem)
                 obj.ExplicitProblem = p.Results.ExplicitProblem;
             end
-            
-            obj.L = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t, y));
-            
-%             if isa(obj.ExplicitProblem.y0, 'function_handle')
-%                 obj.y0 = obj.ExplicitProblem.y0(obj.dfdx.x);
-%             else
-%                 obj.y0 = obj.ExplicitProblem.y0(:);
-%             end
-            
-            obj.CFL = obj.ExplicitProblem.CFL_MAX;
-            obj.dx = obj.dfdx.dx;
-            obj.x = p.Results.dfdx.x;
+                        
+            if isa(obj.ExplicitProblem, 'TestProblems.ODEs.ODE')
+                obj.L = @(t,y) obj.ExplicitProblem.f(t,y);
+                obj.CFL = [];
+                obj.dx = [];
+                obj.x = [];
+            else
+                if ~isa(obj.dfdx, 'WenoCoreDan.Weno')
+                    obj.L = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t, y));
+                else
+                    obj.L = @(t,y) obj.dfdx.L(t, y);
+                end
+                
+                obj.CFL = obj.ExplicitProblem.CFL_MAX;
+                obj.dx = obj.dfdx.dx;
+                obj.x = p.Results.dfdx.x;
+            end
+
             obj.isLinear = obj.ExplicitProblem.isLinear;
         end
     end
@@ -94,7 +99,11 @@ classdef RK < handle
         function [y] = takeStep(obj, dt) end
         
         function resetInitCondition(obj)
-            obj.u0 = obj.y0(obj.x);
+            if isa(obj.y0, 'function_handle')
+                obj.u0 = obj.y0(obj.x);
+            else
+                obj.u0 = obj.y0;
+            end
             obj.t = 0.0;
         end
         

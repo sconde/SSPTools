@@ -33,25 +33,33 @@ classdef DIRK < SSPTools.Steppers.RK
             p.parse(varargin{:});
 
             obj.name = p.Results.name;  
-            obj.n = size(obj.x,1);
             obj.t = p.Results.t;
-            obj.Y = zeros(obj.n, obj.s);
-            obj.I = speye(obj.n);
-            obj.isImplicitLinear = obj.ExplicitProblem.isLinear;
 
-            if obj.isImplicitLinear
-                obj.solver = @(y, dt, i) linearSolve(obj, y, dt,i);
-                obj.DT = obj.dfdx.D;
-                obj.NL = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t,y));
-            else
-                obj.NL = @nonlinearImplicitStage;
-                obj.solver = @(y, dt, i) nonlinearImplicitStage( obj, y, dt, i );
-            end
+            obj.isImplicitLinear = obj.ExplicitProblem.isLinear;
             
             if isa(obj.y0, 'function_handle')
                 obj.u0 = obj.y0(obj.x);
+                obj.n = size(obj.x,1);
             else
                 obj.u0 = obj.y0;
+                obj.n = size(obj.u0,1);
+            end
+            
+            obj.name = p.Results.name;            
+            obj.Y = zeros(obj.n, obj.s);
+            obj.I = speye(obj.n);
+            
+            if isa(obj.ExplicitProblem, 'TestProblems.ODEs.ODE')
+                obj.solver = @(y,dt,i) nonlinearImplicitStage( obj, y, dt, i );
+            else
+                if obj.isImplicitLinear
+                    obj.solver = @(y, dt, i) linearSolve(obj, y, dt,i);
+                    obj.DT = obj.dfdx.D;
+                    obj.NL = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t,y));
+                else
+                    obj.NL = @nonlinearImplicitStage;
+                    obj.solver = @(y, dt, i) nonlinearImplicitStage( obj, y, dt, i );
+                end
             end
             
             assert(~isempty(obj.solver),'Implicit Solver is empty');
@@ -72,7 +80,6 @@ classdef DIRK < SSPTools.Steppers.RK
             u0 = obj.u0;
             
             % first stage implicit solve
-            %keyboard
             obj.Y(:,1) = obj.solver(u0,dt, 1);
             
             % intermediate stage value

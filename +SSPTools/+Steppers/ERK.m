@@ -26,15 +26,21 @@ classdef ERK < SSPTools.Steppers.RK
             addParameter(p, 'isLowStorage', false);
             p.parse(varargin{:});
 
-            obj.name = p.Results.name;  
-            obj.n = size(obj.x,1);
-            obj.Y = zeros(obj.n, obj.s);
             if isa(obj.y0, 'function_handle')
                 obj.u0 = obj.y0(obj.x);
+                obj.n = size(obj.x,1);
             else
                 obj.u0 = obj.y0;
+                obj.n = size(obj.u0,1);
             end
-
+            
+            obj.name = p.Results.name;
+            obj.Y = zeros(obj.n, obj.s);
+            
+            if isa(obj.dfdx, 'WenoCoreDan.Weno')
+                obj.dfdx.f = obj.ExplicitProblem.f;
+                obj.dfdx.em = obj.ExplicitProblem.em;
+            end
         end
         
         
@@ -43,7 +49,7 @@ classdef ERK < SSPTools.Steppers.RK
     methods %( Access = protected )
         
         function [y] = takeStep(obj, dt)
-            
+                        
 %             %check to see if CFL violation
 %             assert((dt/obj.dx) <= obj.CFL, ...
 %                 sprintf('ERK: CFL Violation (CFL = %3.2f )',dt/obj.dx) );
