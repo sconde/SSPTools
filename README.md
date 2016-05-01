@@ -34,4 +34,4 @@ More information about SSP methods and current researh projects can be found at 
 ### Authors ###
 The following people have contributed code to SSPTools 
 
- - Sidafa Conde: Principal author and maintainer
+ - [Sidafa Conde](http://hilbert.math.umassd.edu/~sconde/): Principal author and maintainer
