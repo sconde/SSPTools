@@ -1,3 +1,5 @@
+%Sidafa Conde
+%example of vanderpol ODE
 clear all; close all; clc
 
 
