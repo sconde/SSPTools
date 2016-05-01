@@ -8,6 +8,7 @@ classdef LinearAdvection < handle
        CFL_MAX;
        isLinear = true;
        a;
+       em;
     end
     
     methods
@@ -23,6 +24,7 @@ classdef LinearAdvection < handle
             obj.a = p.Results.a;
             obj.CFL_MAX = abs(obj.a);
             obj.f = @(t, u) obj.a *u;
+            obj.em = @(u) obj.a*ones(size(u));
         end
     end
 end
