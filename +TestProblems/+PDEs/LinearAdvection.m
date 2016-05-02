@@ -1,7 +1,7 @@
 classdef LinearAdvection < handle
     
     properties
-       name = 'Linear Advection';
+       name = 'Linear-Advection';
        f;
        haveExact = false;
        eqn;

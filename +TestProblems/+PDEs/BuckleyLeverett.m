@@ -1,7 +1,7 @@
 classdef BuckleyLeverett < handle
     
     properties
-       name = 'Buckley Leverett';
+       name = 'Buckley-Leverett';
        f = @(t, u) u.^2./(u.^2 + 1.0/3.0*(1-u).^2);
        haveExact = false;
        eqn;

@@ -1,7 +1,7 @@
 classdef LinearDiffusion < handle
     
     properties
-       name = 'Linear Diffusion';
+       name = 'Linear-Diffusion';
        f;
        haveExact = false;
        eqn;

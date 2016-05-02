@@ -14,13 +14,13 @@ classdef Convergence < Tests.Test
         L1Error;
         LinfError;
         DT;
+        problemName;
     end
     
     properties ( Access = private)
         y0;
         dx;
         u0;
-        problemName;
     end
     
     methods
@@ -92,7 +92,7 @@ classdef Convergence < Tests.Test
                 error('not yet implemented');
             end
             
-            obj.problemName = sprintf('%s (Exp) - %s (Imp)',...
+            obj.problemName = sprintf('%s (Exp) + %s (Imp)',...
                 obj.dudt.ExplicitProblem.name, ...
                 obj.dudt.ImplicitProblem.name);
         end
