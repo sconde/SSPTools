@@ -10,16 +10,16 @@ classdef Convergence < Tests.Test
         Tfinal;
         referenceSolution;
         epss;
+        L2Error;
+        L1Error;
+        LinfError;
+        DT;
     end
     
     properties ( Access = private)
         y0;
-        DT;
         dx;
         u0;
-        L2Error;
-        L1Error;
-        LinfError;
         problemName;
     end
     
