@@ -1,5 +1,5 @@
 classdef SSP < Tests.Test
-   
+    
     properties
         cfl;
         t;
@@ -7,7 +7,7 @@ classdef SSP < Tests.Test
         verbose;
         Tfinal;
     end
-   
+    
     properties ( Access = private)
         y0;
         DT;
@@ -17,13 +17,20 @@ classdef SSP < Tests.Test
         initTV;
         TV;
         numViolation;
+        Steps;
+        testTVB;
+        testTVD;
+        TVB;
+        TVD;
+        CFLMAX;
+        cflRefine;
     end
-
-
+    
+    
     methods
         function obj = SSP(varargin)  %constructor
             obj = obj@Tests.Test(varargin{:});
-
+            
             p = inputParser;
             p.KeepUnmatched = true;
             p.addParameter('cfl', 0.2);
@@ -32,6 +39,11 @@ classdef SSP < Tests.Test
             p.addParameter('verbose', 'none'); %TODO: decide if type should be logical instead
             p.addParameter('Tfinal', 0.1);
             p.addParameter('NumberAllowedViolation', 10);
+            p.addParameter('Steps', 50);
+            p.addParameter('TVB', false);
+            p.addParameter('TVD', false);
+            p.addParameter('CFLMAX', 1.5);
+            p.addParameter('CFLRefinement',0.1);
             p.parse(varargin{:});
             
             %obj = obj@Tests.Test(varargin{:});
@@ -41,6 +53,15 @@ classdef SSP < Tests.Test
             obj.verbose = p.Results.verbose;
             obj.Tfinal = p.Results.Tfinal;
             obj.numViolation = p.Results.NumberAllowedViolation;
+            obj.Steps = p.Results.Steps;
+            obj.testTVB = p.Results.TVB;
+            obj.testTVD = p.Results.TVD;
+            obj.CFLMAX = p.Results.CFLMAX;
+            obj.cflRefine = p.Results.CFLRefinement;
+            
+            %TODO: is this correct?
+            assert(any([obj.testTVD obj.testTVB]),'Must choice TVD or TVB');
+            
             
             %TODO : a better way to test for the problem
             obj.dudt = p.Results.integrator;
@@ -54,57 +75,72 @@ classdef SSP < Tests.Test
             
             continueTest = 0;
             numViolation = 0;
-            tvSolution = [];
+            tvbSolution = [];
+            tvdSolution = [];
             cfl = obj.cfl;
             dx = obj.dudt.dfdx.dx;
-            while numViolation < obj.numViolation
+            while cfl < obj.CFLMAX
                 obj.dudt.resetInitCondition();
                 [~, y] = obj.dudt.getState();
                 tv = obj.calcTV(y);
+                tvmax = tv;
                 dt = cfl*dx;
                 ti = 0;
                 tv_violation = false;
                 TVMAX = [];
                 
-                for ti = 1:10
+                for ti = 1:obj.Steps
                     obj.dudt.takeStep(dt);
                     [~, y] = obj.dudt.getState();
                     tv_new = obj.calcTV(y);
                     TVMAX = [TVMAX; tv_new];
+                    tvmax = max(tv_new,tvmax);
                 end
                 
-                tvMax = max(TVMAX);
-                tvSolution = [tvSolution; [cfl tvMax]];
-                    
-                if round(log10(tvMax- obj.initTV)) > -14
-                    cfl = cfl - 0.001;
-                    numViolation = numViolation + 1;
-                else
-                    cfl = cfl + 0.1;
+                if obj.testTVB
+                    tvbSolution = [tvbSolution; [cfl max(TVMAX)]];
                 end
                 
-                continueTest = continueTest + 1;
+                if obj.testTVD
+                    tvdSolution = [tvdSolution; [cfl max(diff(TVMAX))]];
+                end
+                
+                cfl = cfl + obj.cflRefine;
             end
-            obj.TV = tvSolution;
+            obj.TVB = tvbSolution;
+            obj.TVD = tvdSolution;
         end
         
         function [ output ] = run_test(varargin) end
         
         function ssp = plotSolution(obj)
-            diff_tv = log10(abs(obj.TV(:,2) - obj.initTV));
-            indTV = diff_tv < -14;
-            diff_tv(indTV) = -15;
-            indSSP = find(~indTV,1)-1;
-            plot(obj.TV(:,1), diff_tv, 's', 'linewidth',2);
-            ssp = obj.TV(indSSP,1);
+            if obj.testTVB
+                diff_tv = log10(abs(obj.TVB(:,2) - obj.initTV));
+                indTV = diff_tv < -14;
+                diff_tv(indTV) = -15;
+%                 badTV = diff_tv >= -5;
+%                 diff_tv(badTV) = -5;
+                indSSP = find(~indTV,1)-1;
+                plot(obj.TVB(:,1), diff_tv, 's', 'linewidth',2);
+                ssp = obj.TVB(indSSP,1);
+            else
+                goodIdx = obj.TVD(:,2) <= 1e-14;
+                obj.TVD(goodIdx,2) = 1e-15;
+                badIDX = obj.TVD(:,2) >= 1e-5;
+                obj.TVD(badIDX,2) = 1e-5;
+                indSSP = find(~goodIdx,1)-1;
+                semilogy(obj.TVD(:,1), obj.TVD(:,2),'s');
+                ssp = obj.TVD(indSSP,1);
+                ylim([1e-20 1]);
+            end
         end
     end
     
     methods %(Access = protected)
-        function log(obj, varargin) end 
-
+        function log(obj, varargin) end
+        
         function tv = calcTV(obj, u)
-              tv = sum([abs([diff(u); (u(end)-u(1))])]);
+            tv = sum([abs([diff(u); (u(end)-u(1))])]);
         end
     end
     
