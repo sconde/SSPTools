@@ -1,4 +1,4 @@
-classdef LiteratureMethod < SSPTools.Steppers.IMEXRK
+classdef LoadIMEX < SSPTools.Steppers.IMEXRK
     
     properties
         MethodName;
@@ -9,7 +9,7 @@ classdef LiteratureMethod < SSPTools.Steppers.IMEXRK
     end
     
     methods
-        function obj = LiteratureMethod(varargin)
+        function obj = LoadIMEX(varargin)
             
             p = inputParser;
             p.KeepUnmatched = true;
@@ -78,7 +78,7 @@ classdef LiteratureMethod < SSPTools.Steppers.IMEXRK
             end
 
             obj = obj@SSPTools.Steppers.IMEXRK(varargin{:},'A',A,'b',b,'s',s,'At',At,'bt',bt);
-            obj.name = obj.MethodName;
+            obj.name = p.Results.MethodName;
         end
     end
     
