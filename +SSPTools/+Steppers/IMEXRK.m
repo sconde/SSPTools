@@ -1,8 +1,8 @@
 classdef IMEXRK < SSPTools.Steppers.RK
     
     properties
-        At; bt; ct; dgdx; dgdt; ImplicitProblem;
-
+        At; bt; ct; dgdx; dgdt; ImplicitProblem; rt;
+        pim;
     end
     
     properties ( Access = private)
@@ -36,6 +36,8 @@ classdef IMEXRK < SSPTools.Steppers.RK
             addParameter(p, 'ImplicitProblem', []);
             addParameter(p, 'At', []);
             addParameter(p, 'bt', []);
+            addParameter(p, 'rt', []);
+            addParameter(p, 'pim', []);
             addParameter(p, 'isLowStorage', false);
             addParameter(p, 'dgdx', []);
             addParameter(p, 't', 0.0);
@@ -51,6 +53,9 @@ classdef IMEXRK < SSPTools.Steppers.RK
             obj.F = zeros(obj.n, obj.s);
             obj.G = zeros(obj.n, obj.s);
             obj.t = p.Results.t;
+            obj.rt = p.Results.rt;
+            
+            obj.pim = p.Results.pim;
             
             if ~isempty(p.Results.ImplicitProblem)
                 obj.ImplicitProblem = p.Results.ImplicitProblem;
@@ -76,6 +81,14 @@ classdef IMEXRK < SSPTools.Steppers.RK
                 obj.u0 = obj.y0(obj.x);
             else
                 obj.u0 = obj.y0;
+            end
+            
+            if obj.isSSP
+                obj.name = sprintf('SSP%d(%d,%d,%d)%d',...
+                    obj.p,obj.s, obj.s,obj.p, obj.plin);
+            else
+                obj.name = sprintf('IMEX%d(%d,%d,%d)%d',...
+                    obj.p,obj.s, obj.s,obj.p, obj.plin);
             end
         end
         

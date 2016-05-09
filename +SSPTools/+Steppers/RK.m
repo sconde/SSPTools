@@ -6,6 +6,8 @@ classdef RK < handle
         dfdx;
         ExplicitProblem;
         A = []; b = []; c = []; alpha = []; s = []; r = [];
+        p; % Nonlinear-Order
+        plin; % Linear-Order
         t0;
         y0;
         t;
@@ -34,8 +36,9 @@ classdef RK < handle
             addParameter(p, 'ImplicitProblem', []);
             addParameter(p, 'A', []);
             addParameter(p, 'b', []);
-            addParameter(p, 's', []);
             addParameter(p, 'r', []);
+            addParameter(p, 'p', []);
+            addParameter(p, 'plin', []);
             addParameter(p, 'alpha', []);
             addParameter(p, 't', 0.0);
             addParameter(p, 't0', 0);
@@ -57,13 +60,22 @@ classdef RK < handle
             obj.A = p.Results.A;
             obj.b = p.Results.b;
             obj.c = sum(obj.A,2);
-            obj.s = p.Results.s;
+            obj.s = numel(obj.b); %infer the number of stages from the length of b
+            obj.p = p.Results.p;
+            
+            if isempty(p.Results.plin)
+                obj.plin = obj.p;
+            else
+                obj.plin = p.Results.plin;
+            end
+
             obj.alpha = p.Results.alpha;
             obj.name = p.Results.name;
             obj.dfdx = p.Results.dfdx;
             obj.t0 = p.Results.t0;
-            assert(isequal(p.Results.s, size(p.Results.A,1)),...
-                sprintf('RK A:Stage-count -- Num-Rows(A) != %d',p.Results.s));
+            
+            assert(isequal(obj.s, size(p.Results.A,1)),...
+                sprintf('RK A:Stage-count -- Num-Rows(A) != %d',obj.s));
             
             if ~isempty(p.Results.r)
                 obj.r = p.Results.r;
@@ -86,12 +98,19 @@ classdef RK < handle
                     obj.L = @(t,y) obj.dfdx.L(t, y);
                 end
                 
-                obj.CFL = obj.ExplicitProblem.CFL_MAX;
+                %obj.CFL = obj.ExplicitProblem.CFL_MAX;
                 obj.dx = obj.dfdx.dx;
                 obj.x = p.Results.dfdx.x;
             end
 
             obj.isLinear = obj.ExplicitProblem.isLinear;
+            
+            if obj.isSSP
+                obj.name = sprintf('SSP(%d,%d)%d',obj.s, obj.p, obj.plin);
+            else
+                obj.name = sprintf('RK(%d,%d)%d',obj.s, obj.p, obj.plin);
+            end
+            
         end
     end
     

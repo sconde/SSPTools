@@ -34,7 +34,7 @@ classdef DIRK < SSPTools.Steppers.RK
 
             obj.name = p.Results.name;  
             obj.t = p.Results.t;
-
+            
             obj.isImplicitLinear = obj.ExplicitProblem.isLinear;
             
             if isa(obj.y0, 'function_handle')
@@ -63,6 +63,12 @@ classdef DIRK < SSPTools.Steppers.RK
             end
             
             assert(~isempty(obj.solver),'Implicit Solver is empty');
+            
+            if obj.isSSP
+                obj.name = sprintf('SSP(%d,%d)%d',obj.s, obj.p, obj.plin);
+            else
+                obj.name = sprintf('RK(%d,%d)%d',obj.s, obj.p, obj.plin);
+            end
         end
         
         
