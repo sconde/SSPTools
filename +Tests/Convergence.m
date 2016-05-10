@@ -21,6 +21,9 @@ classdef Convergence < Tests.Test
         y0;
         dx;
         u0;
+        L2Error_ = [];
+        L1Error_ = [];
+        LinfError_ = [];
     end
     
     methods
@@ -66,22 +69,27 @@ classdef Convergence < Tests.Test
             
                              
             if isa(obj.dudt,'SSPTools.Steppers.IMEXRK')
-                %if IMEX
-                %TODO: implement reference solution for IMEXRK
-                % use ODE45 to get the solution vector
-                ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss); warning('off');
-                odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y)) + obj.dudt.dgdx.L(obj.dudt.ImplicitProblem.f(t,y));
+                %if IMEX: use ODE45 to get the solution vector
+                ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss); 
+                warning('off',msgID);
+                
+                odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y))...
+                    + obj.dudt.dgdx.L(obj.dudt.ImplicitProblem.f(t,y));
+                
                 [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
                     obj.dudt.y0(obj.dudt.dfdx.x),ode45_options);
+                
                 sol = sol(end,:); sol = sol(:);
                 obj.referenceSolution = sol;
-                %error('not yet implemented');
             elseif isa(obj.dudt.ExplicitProblem,'TestProblems.PDEs.LinearAdvection')
-                obj.referenceSolution = obj.dudt.y0(obj.dudt.dfdx.x - obj.dudt.ExplicitProblem.a * obj.Tfinal);
+                obj.referenceSolution = ...
+                    obj.dudt.y0(obj.dudt.dfdx.x - obj.dudt.ExplicitProblem.a * obj.Tfinal);
+                
             elseif ~isa(obj.dudt, 'SSPTools.Steppers.IMEXRK')
                 % use ODE45 to get the solution vector
                 % is not using IMEXRK
-                ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss); warning('off');
+                ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss); 
+                warning('off');
                 odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y));
                 [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
                     obj.dudt.y0(obj.dudt.dfdx.x),ode45_options);
@@ -92,9 +100,9 @@ classdef Convergence < Tests.Test
                 error('not yet implemented');
             end
             
-            obj.problemName = sprintf('%s (Exp) + %s (Imp)',...
-                obj.dudt.ExplicitProblem.name, ...
-                obj.dudt.ImplicitProblem.name);
+%             obj.problemName = sprintf('%s (Exp) + %s (Imp)',...
+%                 obj.dudt.ExplicitProblem.name, ...
+%                 obj.dudt.ImplicitProblem.name);
         end
         
         function run(obj, varargin)
@@ -102,40 +110,41 @@ classdef Convergence < Tests.Test
             if strcmpi(obj.refinement_type, 'time')
                 obj.refine_time_only(varargin{:});
             end
-            
-            L1Error = [];
-            L2Error = [];
-            LinfError = [];
+
             % this is where I'm taking the steps
             for dt = obj.DT
-                t = 0;
+                t_ = 0;
                 obj.dudt.resetInitCondition();
                 
-                while t < obj.Tfinal
+                while t_ < obj.Tfinal
                     obj.dudt.takeStep(dt);
-                    t = t + dt;
-                    dt = min(dt, obj.Tfinal - t);
+                    t_ = t_ + dt;
+                    dt = min(dt, obj.Tfinal - t_);
                 end
-                [t, y] = obj.dudt.getState();
-                assert(isequal(obj.Tfinal, t),'should be calculating error at tfinal');
+                [t_, y] = obj.dudt.getState();
+                assert(isequal(obj.Tfinal, t_),'should be calculating error at tfinal');
                 
-%                 clf;
-%                 plot(obj.dudt.dfdx.x,y,'-r')
-%                 hold on
-%                 plot(obj.dudt.dfdx.x,obj.referenceSolution,'-k')
-%                 keyboard
-                err = abs(y - obj.referenceSolution); %clear('y');
-                L1Error = [L1Error; norm(err, 1)];
-                L2Error = [L2Error; norm(err, 2)];
-                LinfError = [LinfError; norm(err, 'inf')];
+                err = abs(y - obj.referenceSolution);
+                obj.L1Error_ = [obj.L1Error_; norm(err, 1)];
+                obj.L2Error_ = [obj.L2Error_; norm(err, 2)];
+                obj.LinfError_ = [obj.LinfError_; norm(err, 'inf')];
             end
-            obj.L1Error = L1Error;
-            obj.L2Error = L2Error;
-            obj.LinfError = LinfError;
+            obj.L1Error = obj.L1Error_;
+            obj.L2Error = obj.L2Error_;
+            obj.LinfError = obj.LinfError_;
         end
         
-        function [ output ] = run_test(varargin)
+        function order = getOrder(obj,Err)
             
+            if strcmpi(Err, 'l2')
+                err = obj.L2Error;
+            elseif strcmpi(Err, 'l1')
+                err = obj.L1Error;
+            elseif strcmpi(Err, 'linf')
+                err = obj.LinfError;
+            end
+            obsOrder = polyfit(log(obj.DT(:)),log(err),1);
+            order = obsOrder(1);
         end
         
         
@@ -158,74 +167,19 @@ classdef Convergence < Tests.Test
     
     
     methods %(Access = protected)
-        function log(obj, varargin) end
+%         function log(obj, varargin) end
     end
     
     methods (Access = private)
-        
-%         function order = getOrder(obj,err, dt)
-%             order = log(err(2:end)./err(1:end-1))'./log(dt(2:end)./dt(1:end-1));
+                
+%         function refine_time_only(obj, varargin)
+%             
+% %         end
+%         
+%         function dy = myodefunSpectral(t, y)  
+%             t = 0;
+%             dy = lin_func(y) + nonlinear_func(y);  
 %         end
-        
-        function refine_time_only(obj, varargin)
-            % Run the test.
-            
-            results = {};
-            completed_problems = {};
-            
-            obj.log('Convergence Test\n');
-            obj.log('Problem: %s\n', obj.problem_template.repr());
-            obj.log('Time Stepping Method: %s\n', obj.problem_template.integrator.repr());
-            obj.log('Spatial Discretization: %s\n', obj.problem_template.discretizer.repr());
-            obj.log('\n');
-            
-            for i=1:numel(obj.refinements)
-                
-                n = 100;
-                dt = obj.refinements(i);
-                
-                problem = obj.problem_template.copy();
-                problem.setup_problem(n);
-                
-                obj.log('Testing %i dt=%g\n', n, dt);
-                
-                problem.approximate(obj.t, 'dt', dt, 'verbose', false);
-                l1error = problem.error_norm(1);
-                l2error = problem.error_norm(2);
-                linferror = problem.error_norm(inf);
-                dx = min(diff(problem.x));
-                
-                results{end+1} = struct('N', n,...
-                    'dt', dt,...
-                    'dx', dx,...
-                    'u', problem.u,...
-                    'x', problem.x,...
-                    't', problem.t,...
-                    'exact', problem.get_exact_solution(), ...
-                    'pointwise', problem.calculate_error(),...
-                    'l1error', l1error,...
-                    'l2error', l2error,...
-                    'linferror', linferror);
-                
-                completed_problems{end+1} = problem;
-            end
-            
-            results = [ results{:} ];
-            
-            for i=2:numel(results)
-                refinement = log10(results(i).dt / results(i-1).dt);
-                results(i).l2order  = log10( results(i).l2error / results(i-1).l2error) / refinement;
-                results(i).l1order  = log10( results(i).l1error / results(i-1).l1error) / refinement;
-                results(i).linforder  = log10( results(i).linferror / results(i-1).linferror) / refinement;
-            end
-            
-            obj.results = results;
-            obj.completed_problems = [ completed_problems{:} ];
-        end
-        
-        function dy = myodefunSpectral(t, y)    
-            dy = lin_func(y) + nonlinear_func(y);  
-        end
     end
     
 end
