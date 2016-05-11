@@ -6,8 +6,8 @@ Tfinal = 0.4;
 
 %testing = 'ERK';
 %testing = 'DIRK';
-%testing = 'IMEXRK';
-testing = 'IMEXRK-SSP11';
+testing = 'IMEXRK';
+%testing = 'IMEXRK-SSP11';
 
 
 y0 = @(x) sin(x);
@@ -48,7 +48,7 @@ elseif strcmpi(testing, 'imexrk')
         'dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
         'dgdx', dfdx, 'y0',y0);
 elseif strcmpi(testing, 'imexrk-ssp11')
-    dudt = SSPTools.Steppers.LiteratureMethod('MethodName', 'Stormer-Verlet','dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
+    dudt = SSPTools.Steppers.LoadIMEX('MethodName', 'Stormer-Verlet','dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
         'dgdx', dfdx, 'y0',y0);
 end
 
@@ -57,3 +57,6 @@ convergencePDE = Tests.Convergence('integrator', dudt,'Tfinal', Tfinal,...
 
 convergencePDE.run();
 convergencePDE.complete();
+%convergencePDE.getOrder('L2')
+%convergencePDE.getOrder('L1')
+%convergencePDE.getOrder('Linf')
