@@ -3,9 +3,9 @@ clear all; close all; clc
 addpath('../');
 N = 300;
 
-%testing = 'ERK';
+testing = 'ERK';
 %testing = 'DIRK';
-testing = 'IMEXRK';
+%testing = 'IMEXRK';
 %testing = 'IMEXRK-SSP11';
 
 
@@ -36,11 +36,11 @@ exp_pro = TestProblems.PDEs.Burgers();
 dfdx = SSPTools.Discretizers.FiniteDifference('N', N, 'domain', [-1, 1],'bc','periodic');
 
 if strcmpi(testing, 'erk')
-    dudt = SSPTools.Steppers.ERK('A', rk.A, 'b',rk.b, 'p', rk.pex,'plin', rk.plin,...
-       'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
+%     dudt = SSPTools.Steppers.ERK('A', rk.A, 'b',rk.b, 'p', rk.pex,'plin', rk.plin,...
+%        'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
     
-%     dudt = SSPTools.Steppers.LoadERK('MethodName', 'FE',...
-%         'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
+    dudt = SSPTools.Steppers.LoadERK('MethodName', 'FE',...
+        'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
 elseif strcmpi(testing,'dirk')
 
     dudt = SSPTools.Steppers.DIRK('A', At, 'b',bt, 'p', rk.pim,'plin', rk.plin,...
@@ -58,13 +58,12 @@ end
 tvbPDE = Tests.SSP('integrator', dudt,'TVB',true,'CFLRefinement',0.1,...
     'CFLMAX',2,'CFL',0.8);
 tvdPDE = Tests.SSP('integrator', dudt,'TVD',true,'CFLRefinement',0.001,...
-    'CFLMAX',1.1,'CFL',0.95);
-
-keyboard
+    'CFLMAX',1.06,'CFL',0.85);
 
 % tvbPDE.run();
 % tvbPDE.plotSolution()
 % 
 % keyboard
 tvdPDE.run();
-tvdPDE.plotSolution()
+tvdPDE.calculateSSP();
+tvdPDE.ssp

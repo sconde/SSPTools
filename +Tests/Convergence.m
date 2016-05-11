@@ -107,7 +107,6 @@ classdef Convergence < Tests.Test
                     obj.dudt.ImplicitProblem.name);
             else
                 %TODO: is this working?
-                keyboard
                 obj.problemName = sprintf('%s',...
                     obj.dudt.ExplicitProblem.name);
             end

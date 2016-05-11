@@ -6,6 +6,7 @@ classdef SSP < Tests.Test
         dudt; % should be the integrator
         verbose;
         Tfinal;
+        ssp;
     end
     
     properties ( Access = private)
@@ -112,8 +113,8 @@ classdef SSP < Tests.Test
         end
         
         function [ output ] = run_test(varargin) end
-        
-        function ssp = plotSolution(obj)
+
+        function calculateSSP(obj)
             if obj.testTVB
                 diff_tv = log10(abs(obj.TVB(:,2) - obj.initTV));
                 indTV = diff_tv < -14;
@@ -121,17 +122,17 @@ classdef SSP < Tests.Test
 %                 badTV = diff_tv >= -5;
 %                 diff_tv(badTV) = -5;
                 indSSP = find(~indTV,1)-1;
-                plot(obj.TVB(:,1), diff_tv, 's', 'linewidth',2);
-                ssp = obj.TVB(indSSP,1);
+                %plot(obj.TVB(:,1), diff_tv, 's', 'linewidth',2);
+                obj.ssp = obj.TVB(indSSP,1);
             else
                 goodIdx = obj.TVD(:,2) <= 1e-14;
                 obj.TVD(goodIdx,2) = 1e-15;
                 badIDX = obj.TVD(:,2) >= 1e-0;
                 obj.TVD(badIDX,2) = 1e-0;
                 indSSP = find(~goodIdx,1)-1;
-                semilogy(obj.TVD(:,1), obj.TVD(:,2),'s');
-                ssp = obj.TVD(indSSP,1);
-                ylim([1e-20 1]);
+                %semilogy(obj.TVD(:,1), obj.TVD(:,2),'s');
+                obj.ssp = obj.TVD(indSSP,1);
+                %ylim([1e-20 1]);
             end
         end
     end
