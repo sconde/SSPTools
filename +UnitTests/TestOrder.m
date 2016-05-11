@@ -1,14 +1,20 @@
 classdef TestOrder < matlab.unittest.TestCase
     
+    properties
+        
+    end
+    
     % Test Method Block
     methods (Test)
         % includes unit test functions
         
         function testBurgersRK2(testCase)
+            % test RK2 convegence for burgers
+            
             import matlab.unittest.TestCase
             import matlab.unittest.constraints.IsEqualTo
             import matlab.unittest.constraints.AbsoluteTolerance
-            % test RK2 convegence for burgers
+            
             dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, ...
                 'N', 16);
             
@@ -20,20 +26,18 @@ classdef TestOrder < matlab.unittest.TestCase
                 0.4,'CFL', (1/2).^(1:5));
             
             convergencePDE.run();
-            l2Error = convergencePDE.L2Error;
-            DT = convergencePDE.DT(:);
-            obsOrder = polyfit(log(DT),log(l2Error),1);
-            obsOrder = obsOrder(1);
+            obsOrder = convergencePDE.getOrder('L2');
             
             testCase.assertThat(obsOrder, IsEqualTo(2, ...
                 'Within', AbsoluteTolerance(0.2)))
         end
         
         function testBuckleeRK2(testCase)
+             % test RK2 convegence for BuckleyLeverett
             import matlab.unittest.TestCase
             import matlab.unittest.constraints.IsEqualTo
             import matlab.unittest.constraints.AbsoluteTolerance
-            % test RK2 convegence for BuckleyLeverett
+           
             dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, ...
                 'N', 16);
             
@@ -45,10 +49,7 @@ classdef TestOrder < matlab.unittest.TestCase
                 0.4,'CFL', (1/2).^(1:5));
             
             convergencePDE.run();
-            l2Error = convergencePDE.L2Error;
-            DT = convergencePDE.DT(:);
-            obsOrder = polyfit(log(DT),log(l2Error),1);
-            obsOrder = obsOrder(1);
+            obsOrder = convergencePDE.getOrder('L2');
             
             testCase.assertThat(obsOrder, IsEqualTo(2, ...
                 'Within', AbsoluteTolerance(0.2)))
