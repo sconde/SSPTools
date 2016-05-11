@@ -67,28 +67,41 @@ classdef Convergence < Tests.Test
             obj.dudt = p.Results.integrator;
             obj.DT = obj.dudt.dfdx.dx*obj.CFL;
             
-                             
+            
             if isa(obj.dudt,'SSPTools.Steppers.IMEXRK')
-                %if IMEX: use ODE45 to get the solution vector
-                ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss); 
-                warning('off',msgID);
                 
-                odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y))...
-                    + obj.dudt.dgdx.L(obj.dudt.ImplicitProblem.f(t,y));
-                
-                [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
-                    obj.dudt.y0(obj.dudt.dfdx.x),ode45_options);
-                
-                sol = sol(end,:); sol = sol(:);
-                obj.referenceSolution = sol;
+                if isa(obj.dudt.ExplicitProblem,'TestProblems.PDEs.LinearAdvection') && ...
+                        isa(obj.dudt.ImplicitProblem, 'TestProblems.PDEs.LinearDiffusion')
+                    % treating advection-diffusion specially
+                    
+                    nu = obj.dudt.ImplicitProblem.nu;
+                    a = obj.dudt.ExplicitProblem.a;
+                    k = 1;
+                    exactSol = @(t,x) 1 + exp(nu*k.^2.*t).*sin(k*(x-a*t));
+                    sol = exactSol(obj.Tfinal, obj.dudt.dfdx.x);
+                    obj.referenceSolution = sol(:);
+                else
+                    %if IMEX: use ODE45 to get the solution vector
+                    ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss);
+                    warning('off',msgID);
+                    
+                    odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y))...
+                        + obj.dudt.dgdx.L(obj.dudt.ImplicitProblem.f(t,y));
+                    
+                    [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
+                        obj.dudt.y0(obj.dudt.dfdx.x),ode45_options);
+                    
+                    sol = sol(end,:); sol = sol(:);
+                    obj.referenceSolution = sol;
+                end
             elseif isa(obj.dudt.ExplicitProblem,'TestProblems.PDEs.LinearAdvection')
                 obj.referenceSolution = ...
                     obj.dudt.y0(obj.dudt.dfdx.x - obj.dudt.ExplicitProblem.a * obj.Tfinal);
                 
-            elseif ~isa(obj.dudt, 'SSPTools.Steppers.IMEXRK')
+            elseif ~isa(obj.dudt, 'SSPTools.Steppers.IMEXRK') %is not using IMEXRK
                 % use ODE45 to get the solution vector
-                % is not using IMEXRK
-                ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss); 
+                
+                ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss);
                 warning('off');
                 odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y));
                 [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
@@ -100,17 +113,15 @@ classdef Convergence < Tests.Test
                 error('not yet implemented');
             end
             
-%             obj.problemName = sprintf('%s (Exp) + %s (Imp)',...
-%                 obj.dudt.ExplicitProblem.name, ...
-%                 obj.dudt.ImplicitProblem.name);
+            %TODO: How should I get the name of the problem???
+            %             obj.problemName = sprintf('%s (Exp) + %s (Imp)',...
+            %                 obj.dudt.ExplicitProblem.name, ...
+            %                 obj.dudt.ImplicitProblem.name);
         end
         
         function run(obj, varargin)
             % just the temporal refinement for now
-            if strcmpi(obj.refinement_type, 'time')
-                obj.refine_time_only(varargin{:});
-            end
-
+            
             % this is where I'm taking the steps
             for dt = obj.DT
                 t_ = 0;
@@ -156,7 +167,7 @@ classdef Convergence < Tests.Test
             Order_inf = [nan getOrder(obj.LinfError, obj.DT)]';
             Order_l1 = [nan getOrder(obj.L1Error, obj.DT)]';
             Order_l2 = [nan getOrder(obj.L2Error, obj.DT)]';
-
+            
             fprintf(fid, '%s (Tfinal = %4.3f)\n\n', obj.problemName, obj.Tfinal);
             order_info= [obj.DT' Order_inf Order_l1 Order_l2];
             fprintf(fid, '%8s \t %9s \t %6s \t %6s\n','DT','L-inf','L1','L2');
@@ -167,19 +178,19 @@ classdef Convergence < Tests.Test
     
     
     methods %(Access = protected)
-%         function log(obj, varargin) end
+        %         function log(obj, varargin) end
     end
     
     methods (Access = private)
-                
-%         function refine_time_only(obj, varargin)
-%             
-% %         end
-%         
-%         function dy = myodefunSpectral(t, y)  
-%             t = 0;
-%             dy = lin_func(y) + nonlinear_func(y);  
-%         end
+        
+        %         function refine_time_only(obj, varargin)
+        %
+        % %         end
+        %
+        %         function dy = myodefunSpectral(t, y)
+        %             t = 0;
+        %             dy = lin_func(y) + nonlinear_func(y);
+        %         end
     end
     
 end
