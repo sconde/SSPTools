@@ -55,8 +55,12 @@ classdef IMEXRK < SSPTools.Steppers.RK
             obj.t = p.Results.t;
             obj.rt = p.Results.rt;
             
-            obj.pim = p.Results.pim;
-            
+            if ~isempty(p.Results.pim)            
+                obj.pim = p.Results.pim;
+            else
+                obj.pim = obj.p;
+            end
+                              
             if ~isempty(p.Results.ImplicitProblem)
                 obj.ImplicitProblem = p.Results.ImplicitProblem;
                 obj.isImplicitLinear = p.Results.ImplicitProblem.isLinear;
@@ -86,11 +90,12 @@ classdef IMEXRK < SSPTools.Steppers.RK
             
             if obj.isSSP
                 obj.name = sprintf('SSP%d(%d,%d,%d)%d',...
-                    obj.p,obj.s, obj.s,obj.p, obj.plin);
+                    obj.p,obj.s, obj.s,obj.pim, obj.plin);
             else
                 obj.name = sprintf('IMEX%d(%d,%d,%d)%d',...
-                    obj.p,obj.s, obj.s,obj.p, obj.plin);
+                    obj.p,obj.s, obj.s,obj.pim, obj.plin);
             end
+                        
         end
         
         
