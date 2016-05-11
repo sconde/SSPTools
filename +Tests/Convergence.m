@@ -100,11 +100,17 @@ classdef Convergence < Tests.Test
             else
                 error('not yet implemented');
             end
-                        
-            %TODO: How should I get the name of the problem???
-            %             obj.problemName = sprintf('%s (Exp) + %s (Imp)',...
-            %                 obj.dudt.ExplicitProblem.name, ...
-            %                 obj.dudt.ImplicitProblem.name);
+            
+            if isa(obj.dudt,'SSPTools.Steppers.IMEXRK')
+                obj.problemName = sprintf('%s (Exp) + %s (Imp)',...
+                    obj.dudt.ExplicitProblem.name, ...
+                    obj.dudt.ImplicitProblem.name);
+            else
+                %TODO: is this working?
+                keyboard
+                obj.problemName = sprintf('%s',...
+                    obj.dudt.ExplicitProblem.name);
+            end
         end
         
         function run(obj, varargin)
