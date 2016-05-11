@@ -100,7 +100,7 @@ classdef Convergence < Tests.Test
             else
                 error('not yet implemented');
             end
-            
+                        
             %TODO: How should I get the name of the problem???
             %             obj.problemName = sprintf('%s (Exp) + %s (Imp)',...
             %                 obj.dudt.ExplicitProblem.name, ...
@@ -131,6 +131,10 @@ classdef Convergence < Tests.Test
             obj.L1Error = obj.L1Error_;
             obj.L2Error = obj.L2Error_;
             obj.LinfError = obj.LinfError_;
+        end
+        
+        function name = getStepperName(obj)
+            name = obj.dudt.name;
         end
         
         function order = getOrder(obj,Err)
