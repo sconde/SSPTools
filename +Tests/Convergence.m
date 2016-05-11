@@ -70,30 +70,18 @@ classdef Convergence < Tests.Test
             
             if isa(obj.dudt,'SSPTools.Steppers.IMEXRK')
                 
-                if isa(obj.dudt.ExplicitProblem,'TestProblems.PDEs.LinearAdvection') && ...
-                        isa(obj.dudt.ImplicitProblem, 'TestProblems.PDEs.LinearDiffusion')
-                    % treating advection-diffusion specially
-                    
-                    nu = obj.dudt.ImplicitProblem.nu;
-                    a = obj.dudt.ExplicitProblem.a;
-                    k = 1;
-                    exactSol = @(t,x) 1 + exp(nu*k.^2.*t).*sin(k*(x-a*t));
-                    sol = exactSol(obj.Tfinal, obj.dudt.dfdx.x);
-                    obj.referenceSolution = sol(:);
-                else
-                    %if IMEX: use ODE45 to get the solution vector
-                    ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss);
-                    warning('off',msgID);
-                    
-                    odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y))...
-                        + obj.dudt.dgdx.L(obj.dudt.ImplicitProblem.f(t,y));
-                    
-                    [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
-                        obj.dudt.y0(obj.dudt.dfdx.x),ode45_options);
-                    
-                    sol = sol(end,:); sol = sol(:);
-                    obj.referenceSolution = sol;
-                end
+                %if IMEX: use ODE45 to get the solution vector
+                ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss);
+                warning('off');
+                
+                odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y))...
+                    + obj.dudt.dgdx.L(obj.dudt.ImplicitProblem.f(t,y));
+                
+                [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
+                    obj.dudt.y0(obj.dudt.dfdx.x),ode45_options);
+                
+                sol = sol(end,:); sol = sol(:);
+                obj.referenceSolution = sol;
             elseif isa(obj.dudt.ExplicitProblem,'TestProblems.PDEs.LinearAdvection')
                 obj.referenceSolution = ...
                     obj.dudt.y0(obj.dudt.dfdx.x - obj.dudt.ExplicitProblem.a * obj.Tfinal);
