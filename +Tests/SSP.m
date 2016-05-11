@@ -126,8 +126,8 @@ classdef SSP < Tests.Test
             else
                 goodIdx = obj.TVD(:,2) <= 1e-14;
                 obj.TVD(goodIdx,2) = 1e-15;
-                badIDX = obj.TVD(:,2) >= 1e-5;
-                obj.TVD(badIDX,2) = 1e-5;
+                badIDX = obj.TVD(:,2) >= 1e-0;
+                obj.TVD(badIDX,2) = 1e-0;
                 indSSP = find(~goodIdx,1)-1;
                 semilogy(obj.TVD(:,1), obj.TVD(:,2),'s');
                 ssp = obj.TVD(indSSP,1);
