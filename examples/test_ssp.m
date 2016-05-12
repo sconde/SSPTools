@@ -1,12 +1,12 @@
 clear all; close all; clc
 
 addpath('../');
-N = 200;
+N = 300;
 
-%testing = 'ERK';
-%testing = 'DIRK';
+testing = 'ERK';
+testing = 'DIRK';
 %testing = 'IMEXRK';
-testing = 'IMEXRK-SSP11';
+%testing = 'IMEXRK-SSP11';
 
 
 y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
@@ -15,8 +15,8 @@ y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
 pex = 2;
 pim = 2;
 plin = 2;
-s = 5;
-k = 0;
+s = 2;
+k = 1;
 
 file = sprintf('~/Dropbox/imex-linear/src/butcher-optimization/Method/DIRK/G/Pex%d/Pim%d/Plin%d/S%d/K',...
     pex, pim, plin,s);
@@ -26,9 +26,8 @@ method = files(end).name;
 rk = load([file method]);
 A = rk.A; b = rk.b; s = rk.s;
 At = rk.At; bt = rk.bt;
+%[rk.r rk.rt]
 
-A = [0]; b = [1]; s = 1; %TODO: infert s from size(A,1)
-At = [1]; bt = [1];
 
 imp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
 exp_pro = TestProblems.PDEs.Burgers();
@@ -37,22 +36,34 @@ exp_pro = TestProblems.PDEs.Burgers();
 dfdx = SSPTools.Discretizers.FiniteDifference('N', N, 'domain', [-1, 1],'bc','periodic');
 
 if strcmpi(testing, 'erk')
-    dudt = SSPTools.Steppers.ERK('A', A, 'b',b, 's', s,...
-        'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
+    dudt = SSPTools.Steppers.ERK('A', rk.A, 'b',rk.b, 'p', rk.pex,'plin', rk.plin,...
+       'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
+    
+%     dudt = SSPTools.Steppers.LoadERK('MethodName', 'FE',...
+%         'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
 elseif strcmpi(testing,'dirk')
-    dudt = SSPTools.Steppers.DIRK('A', At, 'b',bt, 's', s,...
+
+    dudt = SSPTools.Steppers.DIRK('A', At, 'b',bt, 'p', rk.pim,'plin', rk.plin,...
         'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
 elseif strcmpi(testing, 'imexrk')
-    dudt = SSPTools.Steppers.IMEXRK('A', A, 'b',b, 's', s, 'At', At, 'bt', bt,...
+    dudt = SSPTools.Steppers.IMEXRK('A', A, 'b',b, 'At', At, 'bt', bt,...
+        'p', rk.pex, 'pim',rk.pim, 'plin',rk.plin,...
         'dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
         'dgdx', dfdx, 'y0',y0);
 elseif strcmpi(testing, 'imexrk-ssp11')
-    dudt = SSPTools.Steppers.LiteratureMethod('MethodName', 'Stormer-Verlet','dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
+    dudt = SSPTools.Steppers.LoadIMEX('MethodName', 'IMEX1','dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
         'dgdx', dfdx, 'y0',y0);
 end
 
-convergencePDE = Tests.SSP('integrator', dudt,'Tfinal', Tfinal,...
-    'CFL', 0.2);
+tvbPDE = Tests.SSP('integrator', dudt,'TVB',true,'CFLRefinement',0.1,...
+    'CFLMAX',2,'CFL',0.8);
+tvdPDE = Tests.SSP('integrator', dudt,'TVD',true,'CFLRefinement',0.01,...
+    'CFLMAX',2,'CFL',0.85);
 
-convergencePDE.run();
-convergencePDE.plotSolution()
+% tvbPDE.run();
+% tvbPDE.plotSolution()
+% 
+% keyboard
+tvdPDE.run();
+tvdPDE.calculateSSP();
+tvdPDE.ssp

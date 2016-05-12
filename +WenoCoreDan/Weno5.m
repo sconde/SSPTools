@@ -1,11 +1,11 @@
 classdef Weno5 < WenoCoreDan.Weno
     
     properties
-        
+        ep = 1e-8;
+        Ngp;
     end
     
     properties (Access = private)
-        Ngp;
         % Coefficients for the interpolant of each stencil
         stencil_coeffs = [ 2./6., -7./6., 11./6.;
             -1./6.,  5./6., 2./6.;
@@ -17,9 +17,9 @@ classdef Weno5 < WenoCoreDan.Weno
         stencils;
         nonlinear_values;
         wp;
-        n_points;
         ISp;
         local_flux_values;
+        n_points;
     end
     
     methods
@@ -58,11 +58,11 @@ classdef Weno5 < WenoCoreDan.Weno
 
             % Append ghost points
             u_gp = [ u(end-obj.gp:end-1); u; u(2:obj.gp+1) ];
-            em = obj.em(u_gp);
             
             [fp, fm] = obj.fluxSplit(u_gp, t);
+            
             %the differential operator needs the flux?
-            u_x = obj.weno_basic(u_gp, fp, fm)';
+            u_x = obj.weno_basic(fp, fm)';
             y = u_x;
             
         end
@@ -70,62 +70,28 @@ classdef Weno5 < WenoCoreDan.Weno
     
     methods (Access = protected)
         
-        function [wp] = wenokernel(obj, u_values, u_idx)
+        function [wp] = wenokernel(obj, uLL, uL, u, uR, uRR)
+            % this is like the weno function
             
-            persistent stencil_mapping;
-            %persistent local_flux_values;
-            u_values = u_values';
-
-            
-            obj.stencils(:,1) = (1:obj.m)';
-            for i=2:obj.m
-                obj.stencils(:,i) = obj.stencils(:,i-1) + 1;
-            end
-
-
-            for i=1:obj.m
-                stencil_mapping(:, i) = ...
-                    sub2ind(size(obj.local_flux_values), i*ones(1,obj.m),...
-                    (1:obj.m)+(i-1));
-            end
-            
-            j_absidx = 1;
-            
-            for j=u_idx
-                
-                % Get the global indices of the current point.
-                window = (j-2:j+2)';
-                
-                % Get the corresponding function values.
-                u = u_values(window);
-                
-                obj.ISp(1) = 13.0/12.0*(u(1)-2.0*u(2)+u(3))^2 + 0.25*(u(1)-4.0*u(2)+3.0*u(3))^2;
-                obj.ISp(2) = 13.0/12.0*(u(2)-2.0*u(3)+u(4))^2 + 0.25*(u(2)-u(4))^2;
-                obj.ISp(3) = 13.0/12.0*(u(3)-2.0*u(4)+u(5))^2 + 0.25*(3.0*u(3)-4.0*u(4)+u(5))^2;
-                
-                % Calculate the normalized weights of each stencil.
-                obj.ISp = obj.ideal_weights ./ (obj.ISp + obj.epsilon).^obj.p;
-                obj.ISp = obj.ISp ./ norm(obj.ISp,1);
-                
-                % Apply those weights to each stencil.
-                interp_coeffs = bsxfun(@times, obj.stencil_coeffs, obj.ISp);
-                
-                % Map global indices into our local stencils
-                window_indices = window(obj.stencils);
-                
-                % Update the global flux-interpolation matrix with our local stencils
-                obj.local_flux_values(stencil_mapping) = interp_coeffs;
-                
-                % Update the global flux-interpolation matrix
-                obj.wp(window_indices(1):window_indices(end), j_absidx) = ...
-                    sum(obj.local_flux_values);
-                
-                % Move on to the next row of the global flux-interpolation matrix.
-                j_absidx = j_absidx + 1;
-            end
-            
-            % Return a correctly-transposed matrix.
-            wp = obj.wp';
+          betaL = (13/12)*(uLL - 2*uL + u).^2 + (1/4)*(uLL - 4*uL + 3*u).^2;
+          beta  = (13/12)*(uL - 2*u + uR).^2 + (1/4)*(uL - uR).^2;
+          betaR = (13/12)*(u - 2*uR + uRR).^2 + (1/4)*(3*u - 4*uR + uRR).^2;
+          
+          % do the regularation here
+          wL = 0.1./(obj.ep + betaL);
+          w  = 0.6./(obj.ep + beta);
+          wR = 0.3./(obj.ep + betaR);
+          ws = (wL + w + wR);
+          wL = wL/ws; 
+          wR = wR/ws;
+          w = 1 - wL - wR;
+          
+          % do the reconstruction
+          pL = (2*uLL - 7*uL + 11*u)/6;
+          p  = (-1*uL + 5*u + 2*uR)/6;
+          pR = (2*u + 5*uR - uRR)/6;
+          
+          wp = wL*pL + w*p + wR*pR;
         end
     end
     

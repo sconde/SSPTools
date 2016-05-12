@@ -72,8 +72,8 @@ classdef Weno < handle
             end
         end
         
-        function [y] = L(obj, u) 
-        
+        function [y] = L(obj, u)
+            
         end
         
     end
@@ -86,25 +86,22 @@ classdef Weno < handle
             u_em = 0.5*obj.em(u);
             fp = 0.5*fu + u_em;
             fm = 0.5*fu - u_em;
+            
         end
         
-        function [u_x] = weno_basic(obj,u, fp, fm)
+        function [u_x] = weno_basic(obj,fp, fm)
             
-%             % Compute the upwind interpolation
+            % Compute the upwind interpolation
             %obj.Wp(obj.gp-1:length(fp)-obj.gp,:) = ...
-                obj.Wp = obj.wenokernel(fp, obj.gp-1:length(fp)-obj.gp)';
-                
-%             % Compute the downwind interpolation
-                obj.Wm = obj.wenokernel(fm(end:-1:1), obj.gp-1:length(fp)-obj.gp+1)';
-                %TODO: size(obj.Wp) != size(obj.Wm). Why??
+            n = obj.Ngp;
+            uInd = obj.gp+1:n-obj.gp;
+            obj.Wp = obj.wenokernel(fp(uInd-2), fp(uInd-1), fp(uInd), fp(uInd+1), fp(uInd+2));
             
-                keyboard
-            for i=(obj.gp+1:length(u)-obj.gp)
-                obj.WP(i,:) = -(obj.Wp(i,:) - obj.Wp(i-1,:))/obj.dx;
-                obj.WM(i,:) = -(obj.Wm(i,:) - obj.Wm(i-1,:))/obj.dx;
-            end
-            keyboard
+            % Compute the downwind interpolation
+            obj.Wm = obj.wenokernel(fm(uInd+2), fm(uInd+1), fm(uInd), fm(uInd-1), fm(uInd-2));
             
+            error('Not yet finished');
+
             u_x = obj.WP*fp + obj.WM*fm;
             u_x = u_x(obj.gp+1:length(u)-obj.gp);
         end
