@@ -62,7 +62,6 @@ classdef ERK < SSPTools.Steppers.RK
                 
                 temp = u0;
                 for j = 1:i-1
-                    keyboard
                     temp = temp + dt*obj.A(i,j)*obj.L(dt + obj.c(j), obj.Y(:,j));
                 end
                 obj.Y(:,i) = temp;
