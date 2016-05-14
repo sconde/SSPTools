@@ -37,7 +37,7 @@ classdef ERK < SSPTools.Steppers.RK
             obj.name = p.Results.name;
             obj.Y = zeros(obj.n, obj.s);
             
-            if isa(obj.dfdx, 'WenoCoreDan.Weno')
+            if isa(obj.dfdx, 'WenoCore.Weno')
                 obj.dfdx.f = obj.ExplicitProblem.f;
                 obj.dfdx.em = obj.ExplicitProblem.em;
             end
