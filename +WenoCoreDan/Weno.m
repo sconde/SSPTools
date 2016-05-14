@@ -7,16 +7,21 @@ classdef Weno < handle
         domain;
         dx;
         order;
-        derivativeOrder;
+        derivativeOrder = 1;
         x;
         em;
         f;
+        xx; % x with ghost points
+        mpts_inx;  % good point
+        lgpts_inx; % left ghost point index
+        rgpts_inx; % right ghost point index
+        xx_inx; % all the indeces
     end
     
     properties (Access = protected)
         isSSP = false;
         weno_fcn;
-        gp;
+        md;
         epsilon;
         p;
         Wp;
@@ -25,6 +30,9 @@ classdef Weno < handle
         WM;
         fm;
         fp;
+        nstart;
+        remove;
+        np;
     end
     
     methods
@@ -80,6 +88,11 @@ classdef Weno < handle
     
     methods (Access = protected)
         
+        function u = applyBC(obj, u)
+            u(obj.lgpts_inx) = u(obj.mpts_inx(end-obj.md+1:end));
+            u(obj.rgpts_inx) = u(obj.mpts_inx(1:obj.md));
+        end
+        
         function [fp, fm] = fluxSplit(obj, u, t)
             % Split the numerical flux into positive and negative components
             fu = obj.f(u, t);
@@ -89,25 +102,41 @@ classdef Weno < handle
             
         end
         
-        function [u_x] = weno_basic(obj,fp, fm)
+        function unew = makeu(obj, u)
             
-            % Compute the upwind interpolation
-            %obj.Wp(obj.gp-1:length(fp)-obj.gp,:) = ...
-            n = obj.Ngp;
-            uInd = obj.gp+1:n-obj.gp;
-            obj.Wp = obj.wenokernel(fp(uInd-2), fp(uInd-1), fp(uInd), fp(uInd+1), fp(uInd+2));
+            unew = zeros(obj.np+obj.md,1);
             
-            % Compute the downwind interpolation
-            obj.Wm = obj.wenokernel(fm(uInd+2), fm(uInd+1), fm(uInd), fm(uInd-1), fm(uInd-2));
+            for i = obj.nstart:obj.np
+                unew(i)= u(i-obj.remove);
+            end;
+            % periodic boundaries
+            for i = 1:obj.md
+                unew(obj.np+i) = unew(obj.nstart+i-1);
+            end;
+            for i = 1:obj.md
+                unew(obj.nstart-i)= unew(obj.np+1-i);
+            end;
+        end
             
-            error('Not yet finished');
-
-            u_x = obj.WP*fp + obj.WM*fm;
-            u_x = u_x(obj.gp+1:length(u)-obj.gp);
+            function [u_x] = weno_basic(obj,fp, fm)
+                
+                % Compute the upwind interpolation
+                %obj.Wp(obj.md-1:length(fp)-obj.md,:) = ...
+                n = obj.Nmd;
+                uInd = obj.md+1:n-obj.md;
+                obj.Wp = obj.wenokernel(fp(uInd-2), fp(uInd-1), fp(uInd), fp(uInd+1), fp(uInd+2));
+                
+                % Compute the downwind interpolation
+                obj.Wm = obj.wenokernel(fm(uInd+2), fm(uInd+1), fm(uInd), fm(uInd-1), fm(uInd-2));
+                
+                error('Not yet finished');
+                
+                u_x = obj.WP*fp + obj.WM*fm;
+                u_x = u_x(obj.md+1:length(u)-obj.md);
+            end
+            
+            function [wp, is_values] = wenokernel(obj,u, idx) end
         end
         
-        function [wp, is_values] = wenokernel(obj,u, idx) end
+        
     end
-    
-    
-end
