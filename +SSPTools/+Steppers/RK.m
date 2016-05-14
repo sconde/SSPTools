@@ -80,7 +80,7 @@ classdef RK < handle
                 obj.dx = [];
                 obj.x = [];
             else
-                if ~isa(obj.dfdx, 'WenoCoreDan.Weno')
+                if ~isa(obj.dfdx, 'WenoCore.Weno')
                     obj.L = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t, y));
                 else
                     obj.L = @(t,y) obj.dfdx.L(t, y);

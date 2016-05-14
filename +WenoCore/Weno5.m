@@ -1,4 +1,4 @@
-classdef Weno5 < WenoCoreDan.Weno
+classdef Weno5 < WenoCore.Weno
     
     properties
         ep = 1e-8;
@@ -25,7 +25,7 @@ classdef Weno5 < WenoCoreDan.Weno
     methods
         
         function obj = Weno5(varargin)
-            obj = obj@WenoCoreDan.Weno(varargin{:});
+            obj = obj@WenoCore.Weno(varargin{:});
             
             p = inputParser;
             p.KeepUnmatched = true;
