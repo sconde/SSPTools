@@ -14,8 +14,8 @@ y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
 % LNL-IMEX RK
 pex = 3;
 pim = 2;
-plin = 4;
-s = 5;
+plin = 2;
+s = 2;
 k = 1;
 
 file = sprintf('~/Dropbox/imex-linear/src/butcher-optimization/Method/DIRK/G/Pex%d/Pim%d/Plin%d/S%d/K',...
@@ -57,8 +57,8 @@ end
 
 tvbPDE = Tests.SSP('integrator', dudt,'TVB',true,'CFLRefinement',0.1,...
     'CFLMAX',2,'CFL',0.8);
-tvdPDE = Tests.SSP('integrator', dudt,'TVD',true,'CFLRefinement',0.001,...
-    'CFLMAX',1.06,'CFL',0.85);
+tvdPDE = Tests.SSP('integrator', dudt,'TVD',true,'CFLRefinement',0.01,...
+    'CFLMAX',2,'CFL',0.85);
 
 % tvbPDE.run();
 % tvbPDE.plotSolution()
