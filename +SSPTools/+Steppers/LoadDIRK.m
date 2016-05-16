@@ -14,10 +14,12 @@ classdef LoadDIRK < SSPTools.Steppers.DIRK
             p = inputParser;
             p.KeepUnmatched = true;
             addParameter(p,'MethodName','FE');
-            addParameter(p, 'Theta', 0.1);
+            addParameter(p, 'Constant', 0.1);
             p.parse(varargin{:});
             
-            gam = p.Results.Gamma;
+            if ~isempty(p.Results.Constant)
+                gam = p.Results.Constant;
+            end
             
             if strcmpi(p.Results.MethodName, 'fe')
                 A = [0]; b = [1]; s = 1;
@@ -25,7 +27,7 @@ classdef LoadDIRK < SSPTools.Steppers.DIRK
                 A = [0 0 0 0;
                     1/2 0 0 0;
                     0 1/2 0 0;
-                    0 0 0 1 0]; 
+                    0 0 0 1 0];
                 b = [1/6 1/3 1/3 1/6]; s = 4;
                 At = [0 0;0 1]; bt = [0 1];
             elseif strcmpi(p.Results.MethodName, 'midpoint')
@@ -40,7 +42,7 @@ classdef LoadDIRK < SSPTools.Steppers.DIRK
             elseif strcmpi(p.Results.MethodName, 'kutta3')
                 A = [0 0 0;0.5 0 0;-1 2 0]; b = [1/6 2/3 6/3]; s = 3;
             end
-
+            
             obj = obj@SSPTools.Steppers.DIRK(varargin{:},'A',A,'b',b,'s',s);
             obj.name = p.Results.MethodName;
         end
