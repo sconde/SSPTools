@@ -113,6 +113,16 @@ classdef SSP < Tests.Test
         end
         
         function [ output ] = run_test(varargin) end
+        
+        function plotSolution(obj)
+            
+            %first calculate the SSP
+            obj.calculateSSP();
+            
+            %now plot the solution
+            semilogy(obj.TVD(:,1), obj.TVD(:,2),'s');
+            ylim([1e-20 1]);
+        end
 
         function calculateSSP(obj)
             if obj.testTVB
@@ -130,9 +140,7 @@ classdef SSP < Tests.Test
                 badIDX = obj.TVD(:,2) >= 1e-0;
                 obj.TVD(badIDX,2) = 1e-0;
                 indSSP = find(~goodIdx,1)-1;
-                %semilogy(obj.TVD(:,1), obj.TVD(:,2),'s');
                 obj.ssp = obj.TVD(indSSP,1);
-                %ylim([1e-20 1]);
             end
         end
     end
