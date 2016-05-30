@@ -17,18 +17,18 @@ testing = 'ERK';
 %testing = 'DIRK';
 testing = 'IMEXRK';
 
-%y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
 y0 = @(x) sin(x);
 
 exp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
 imp_pro = TestProblems.PDEs.LinearDiffusion('nu', 0.1);
 
-dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N);
-dgdx = SSPTools.Discretizers.Spectral('derivativeOrder',2, 'N', N);
+dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N, ...
+    'Problem',exp_pro);
+dgdx = SSPTools.Discretizers.Spectral('derivativeOrder',2, 'N', N,...
+    'Problem', imp_pro);
 
 dudt = SSPTools.Steppers.IMEXRK('A', A, 'b',b, 's', s, 'At', At, 'bt', bt, 'dydt', f,...
-    'dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
-    'dgdx', dgdx, 'y0',y0);
+    'dfdx', dfdx, 'dgdx', dgdx, 'y0',y0);
 
 line1 = plot(dfdx.x, dudt.y0(dfdx.x),'-r','linewidth',2);
 axis([0 2*pi -1 1]);

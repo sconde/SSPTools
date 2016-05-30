@@ -81,9 +81,9 @@ classdef RK < handle
                 obj.r = p.Results.r;
                 obj.isSSP = true;
             end
-            
-            if ~isempty(p.Results.ExplicitProblem)
-                obj.ExplicitProblem = p.Results.ExplicitProblem;
+                        
+            if ~isempty(obj.dfdx.problem)
+                obj.ExplicitProblem = obj.dfdx.problem;
             end
                         
             if isa(obj.ExplicitProblem, 'TestProblems.ODEs.ODE')

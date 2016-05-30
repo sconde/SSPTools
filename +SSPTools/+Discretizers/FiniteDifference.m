@@ -22,6 +22,7 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
             addParameter(p, 'bc', 'periodic');
             addParameter(p, 'N', 10);
             addParameter(p, 'domain', [-1 1]);
+            addParameter(p, 'Problem', []);
             p.parse(varargin{:});
             
             obj.isSSP = p.Results.isSSP;
@@ -29,6 +30,10 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
             obj.derivativeOrder = p.Results.derivativeOrder;
             obj.nx = p.Results.N;
             obj.domain = p.Results.domain;
+            
+            if ~isempty(p.Results.Problem)
+                obj.problem = p.Results.Problem;
+            end
             
             if ~isempty(obj.domain)
                 obj.x = linspace(obj.domain(1),obj.domain(2),obj.nx);
@@ -42,6 +47,7 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
             r([1 obj.nx]) = [1 -1];
             c([1 2]) = [1 -1];
             obj.D = toeplitz(c,r)/(-obj.dx);
+            
         end
         
     end

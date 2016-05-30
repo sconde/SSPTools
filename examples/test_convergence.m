@@ -4,9 +4,9 @@ addpath('../')
 N = 16;
 Tfinal = 0.4;
 
-%testing = 'ERK';
+testing = 'ERK';
 %testing = 'DIRK';
-testing = 'IMEXRK';
+%testing = 'IMEXRK';
 %testing = 'IMEXRK-SSP11';
 
 
@@ -35,21 +35,33 @@ exp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
 exp_pro = TestProblems.PDEs.Burgers();
 imp_pro = TestProblems.PDEs.BuckleyLeverett();
 
-dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N);
-
 if strcmpi(testing, 'erk')
+    dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N,...
+        'Problem', imp_pro);
+    
     dudt = SSPTools.Steppers.ERK('A', A, 'b',b, 's', s,...
-        'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
+        'dfdx', dfdx, 'y0', y0);
+    
 elseif strcmpi(testing,'dirk')
+     dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N,...
+        'Problem', imp_pro);
+    
     dudt = SSPTools.Steppers.DIRK('A', At, 'b',bt, 's', s,...
-        'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
+        'dfdx', dfdx, 'y0', y0);
+    
 elseif strcmpi(testing, 'imexrk')
+    dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N,...
+        'Problem', exp_pro);
+    
+     dgdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N,...
+        'Problem', imp_pro);
+
     dudt = SSPTools.Steppers.IMEXRK('A', A, 'b',b, 's', s, 'At', At, 'bt', bt,...
-        'dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
+        'dfdx', dfdx,...
         'dgdx', dfdx, 'y0',y0);
-elseif strcmpi(testing, 'imexrk-ssp11')
-    dudt = SSPTools.Steppers.LoadIMEX('MethodName', 'Stormer-Verlet','dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
-        'dgdx', dfdx, 'y0',y0);
+% elseif strcmpi(testing, 'imexrk-ssp11')
+%     dudt = SSPTools.Steppers.LoadIMEX('MethodName', 'Stormer-Verlet','dfdx', dfdx, 'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro,...
+%         'dgdx', dfdx, 'y0',y0);
 end
 
 convergencePDE = Tests.Convergence('integrator', dudt,'Tfinal', Tfinal,...

@@ -3,6 +3,7 @@ classdef Discretize < handle
     properties
         derivativeOrder;
         x;
+        problem;
     end
     
     methods

@@ -23,6 +23,8 @@ classdef Spectral < SSPTools.Discretizers.Discretize
             addParameter(p, 'isSSP', false);
             addParameter(p, 'derivativeOrder', 1);
             addParameter(p, 'N', 8);
+            addParameter(p, 'Problem', []);
+            
             p.parse(varargin{:});
             
             obj.x = p.Results.x;
@@ -33,6 +35,10 @@ classdef Spectral < SSPTools.Discretizers.Discretize
             [obj.x, obj.D] = obj.fourdif(obj.nx, obj.derivativeOrder);
             obj.D = -obj.D;
             obj.dx = obj.x(2) - obj.x(1);
+            
+            if ~isempty(p.Results.Problem)
+                obj.problem = p.Results.Problem;
+            end
             
         end
         

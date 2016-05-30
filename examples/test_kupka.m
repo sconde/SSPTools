@@ -25,7 +25,7 @@ exp_pro = TestProblems.ODEs.KupkaExplicit();
 imp_pro = TestProblems.ODEs.KupkaImplicit();
 
 
-dudt = SSPTools.Steppers.LoadIMEX('MethodName', 'IMEXSSP1111LPM',...
+dudt = SSPTools.Steppers.LoadIMEX('MethodName', 'IMEXSSP2222',...
     'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro, 'y0', y0);
 
 % plot(t, y0(1),'sr');
@@ -42,12 +42,14 @@ dudt = SSPTools.Steppers.LoadIMEX('MethodName', 'IMEXSSP1111LPM',...
 
 % convergence test
 convergencePDE = Tests.Convergence('integrator', dudt,'Tfinal', Tfinal,...
-    'DT', Tfinal./[40:10:80],'ExactSolution',@(t) tan(t));
+    'DT', Tfinal./[40:10:100],'ExactSolution',@(t) tan(t));
 convergencePDE.run();
-convergencePDE.complete()
-l2Error = convergencePDE.getError('l2')
+convergencePDE.complete();
+l2Error = convergencePDE.getError('l2');
+DT = convergencePDE.getDT();
 
-ErrorConst = max(l2Error(1:end-1)./l2Error(2:end))
+ErrorConst = max(l2Error(1:end-1)./l2Error(2:end));
+l2Error./DT(1)
 % hfig = gcf;
 % axesObjs = get(hfig, 'Children');  %axes handles
 % dataObjs = get(axesObjs, 'Children'); %handles to low-level graphics objects in axes

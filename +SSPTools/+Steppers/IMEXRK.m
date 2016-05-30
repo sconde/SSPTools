@@ -59,13 +59,10 @@ classdef IMEXRK < SSPTools.Steppers.RK
                 obj.pim = obj.p;
             end
             
-            if ~isempty(p.Results.ImplicitProblem)
-                obj.ImplicitProblem = p.Results.ImplicitProblem;
-                obj.isImplicitLinear = p.Results.ImplicitProblem.isLinear;
-            end
             
             if ~isempty(p.Results.dgdx)
                 obj.dgdx = p.Results.dgdx;
+                obj.ImplicitProblem = obj.dgdx.problem;
             end
             
             if isa(obj.ImplicitProblem, 'TestProblems.ODEs.ODE') && ...
