@@ -68,17 +68,19 @@ classdef TestOrder < matlab.unittest.TestCase
             exp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
             imp_pro = TestProblems.PDEs.LinearDiffusion('nu', 0.1);
             
-            dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N);
+            dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N,...
+                'Problem', exp_pro);
             
-            dgdx = SSPTools.Discretizers.Spectral('derivativeOrder',2, 'N', N);
+            dgdx = SSPTools.Discretizers.Spectral('derivativeOrder',2, 'N', N,...
+                'Problem', imp_pro);
             
             
             CFL = (1/2).^(1:5);
             
             
             ssp22 = SSPTools.Steppers.LoadIMEX('MethodName','IMEXSSP3333',...
-                'dfdx', dfdx,'ExplicitProblem', exp_pro,...
-                'dgdx', dgdx, 'y0',y0,'ImplicitProblem', imp_pro);
+                'dfdx', dfdx,...
+                'dgdx', dgdx, 'y0',y0);
             
             
             ssp22_convergence = Tests.Convergence('integrator', ssp22,'Tfinal', Tfinal,...
