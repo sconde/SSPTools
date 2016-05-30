@@ -184,6 +184,10 @@ classdef Convergence < Tests.Test
             end
         end
         
+        function dt = getDT(obj)
+            dt = obj.DT;
+        end
+        
         function complete(obj)
             % print the result of the test
             fid = 1;
