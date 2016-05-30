@@ -61,7 +61,7 @@ classdef Convergence < Tests.Test
             end
             
             %TODO : a better way to test for the problem
-            obj.dudt = p.Results.integrator;
+            obj.dudt = p.Results.integrator;    
             
             if ~isempty(p.Results.DT)
                 obj.DT = p.Results.DT;
@@ -79,7 +79,6 @@ classdef Convergence < Tests.Test
             obj.Tfinal = p.Results.Tfinal;
             obj.refinement_type = p.Results.refinement_type;
             obj.epss = p.Results.NonlinearEps;
-            
             
             
             if obj.isExactSolSet

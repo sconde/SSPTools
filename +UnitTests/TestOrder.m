@@ -54,5 +54,41 @@ classdef TestOrder < matlab.unittest.TestCase
             testCase.assertThat(obsOrder, IsEqualTo(2, ...
                 'Within', AbsoluteTolerance(0.2)))
         end
+        
+        function testAdvectionDiffusion(testCase)
+            % test advection diffusion with ssp33
+            import matlab.unittest.TestCase
+            import matlab.unittest.constraints.IsEqualTo
+            import matlab.unittest.constraints.AbsoluteTolerance
+            
+            y0 = @(x) sin(x);
+            N = 8;
+            Tfinal = 0.4;
+            
+            exp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
+            imp_pro = TestProblems.PDEs.LinearDiffusion('nu', 0.1);
+            
+            dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N);
+            
+            dgdx = SSPTools.Discretizers.Spectral('derivativeOrder',2, 'N', N);
+            
+            
+            CFL = (1/2).^(1:5);
+            
+            
+            ssp22 = SSPTools.Steppers.LoadIMEX('MethodName','IMEXSSP3333',...
+                'dfdx', dfdx,'ExplicitProblem', exp_pro,...
+                'dgdx', dgdx, 'y0',y0,'ImplicitProblem', imp_pro);
+            
+            
+            ssp22_convergence = Tests.Convergence('integrator', ssp22,'Tfinal', Tfinal,...
+                'CFL', CFL);
+            
+            
+            ssp22_convergence.run();
+            obsOrder = ssp22_convergence.getOrder('L2');
+            testCase.assertThat(obsOrder, IsEqualTo(3, ...
+                'Within', AbsoluteTolerance(0.2)))
+        end
     end
 end
