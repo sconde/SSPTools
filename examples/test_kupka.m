@@ -1,5 +1,9 @@
 %Sidafa Conde
-%example of vanderpol ODE
+% determine Error-Constant
+% Total-Variation-Diminishing Implicit-Explicit Runge-Kutta Methods for the
+% Simulation of Double-Diffusive Convection in Astrophyics (Friedrich
+% Kupka)
+
 clear all; close all; clc
 
 
