@@ -18,13 +18,13 @@ classdef LoadIMEX < SSPTools.Steppers.IMEXRK
             
             p = inputParser;
             p.KeepUnmatched = true;
-            addParameter(p,'MethodName','SSP11LPM');
+            addParameter(p,'MethodName','SSP1111LPM');
             addParameter(p, 'Gamma', 0.1);
             p.parse(varargin{:});
             
             gam = p.Results.Gamma;
             r = 0; rt = 0;
-            
+                        
             if strcmpi(p.Results.MethodName, 'imexssp1111lpm')
                 %\cite[higuera1, eq. 9.1]
                 A = [0]; b = [1]; At = [1]; bt = [1]; s = 1;
