@@ -25,9 +25,8 @@ classdef LoadERK < SSPTools.Steppers.ERK
                 A = [0 0 0 0;
                     1/2 0 0 0;
                     0 1/2 0 0;
-                    0 0 0 1 0]; 
+                    0 0 1 0]; 
                 b = [1/6 1/3 1/3 1/6]; s = 4;
-                At = [0 0;0 1]; bt = [0 1];
             elseif strcmpi(p.Results.MethodName, 'midpoint')
                 A = [0 0;1/2 0]; b = [0 1]; s = 2;
             elseif strcmpi(p.Results.MethodName, 'theta')

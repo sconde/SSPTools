@@ -33,7 +33,7 @@ classdef IMEXRK < SSPTools.Steppers.RK
             addParameter(p,'name','MSRK-IMEXRK');
             addParameter(p, 'isSSP', false);
             addParameter(p, 'isButcher', true);
-%             addParameter(p, 'ImplicitProblem', []);
+            addParameter(p, 'ImplicitODE', []);
             addParameter(p, 'At', []);
             addParameter(p, 'bt', []);
             addParameter(p, 'rt', []);
@@ -63,6 +63,8 @@ classdef IMEXRK < SSPTools.Steppers.RK
             if ~isempty(p.Results.dgdx)
                 obj.dgdx = p.Results.dgdx;
                 obj.ImplicitProblem = obj.dgdx.problem;
+            elseif ~isempty(p.Results.ImplicitODE)
+                obj.ImplicitProblem = p.Results.ImplicitODE;
             end
             
             if isa(obj.ImplicitProblem, 'TestProblems.ODEs.ODE') && ...

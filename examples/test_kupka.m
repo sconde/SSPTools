@@ -27,19 +27,8 @@ imp_pro = TestProblems.ODEs.KupkaImplicit();
 
 
 dudt = SSPTools.Steppers.LoadIMEX('MethodName', 'IMEXSSP2222',...
-    'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro, 'y0', y0);
+    'ODE', exp_pro, 'ImplicitODE', imp_pro, 'y0', y0);
 
-% plot(t, y0(1),'sr');
-% hold on
-% 
-% while t < Tfinal
-%     
-%     y0 = dudt.takeStep(dt);
-%     t = t+ dt;
-%         
-%     plot(t, y0(1), 'sr');
-%     pause(0.1);
-% end
 
 % convergence test
 convergencePDE = Tests.Convergence('integrator', dudt,'Tfinal', Tfinal,...
