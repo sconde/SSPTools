@@ -15,6 +15,7 @@ classdef Convergence < Tests.Test
         LinfError;
         DT;
         problemName;
+        exactSol;
     end
     
     properties ( Access = private)
@@ -24,6 +25,7 @@ classdef Convergence < Tests.Test
         L2Error_ = [];
         L1Error_ = [];
         LinfError_ = [];
+        isExactSolSet = false;
     end
     
     methods
@@ -42,6 +44,8 @@ classdef Convergence < Tests.Test
             p.addParameter('L1Error', true);
             p.addParameter('LinfError', true);
             p.addParameter('NonlinearEps', 1e-14);
+            p.addParameter('DT',[]);
+            p.addParameter('ExactSolution',[]);
             p.parse(varargin{:});
             
             obj = obj@Tests.Test(varargin{:});
@@ -51,10 +55,20 @@ classdef Convergence < Tests.Test
             %             obj.getL2Error = p.Results.L2Error;
             %             obj.
             
-            if ~isempty(p.Results.CFL)
-                obj.CFL = p.Results.CFL;
+            if ~isempty(p.Results.ExactSolution)
+                obj.exactSol = p.Results.ExactSolution;
+                obj.isExactSolSet = true;
+            end
+            
+            if ~isempty(p.Results.DT)
+                obj.DT = p.Results.DT;
             else
-                obj.CFL = 0.2*(1/2).^(1:obj.refine_level);
+                if ~isempty(p.Results.CFL)
+                    obj.CFL = p.Results.CFL;
+                else
+                    obj.CFL = 0.2*(1/2).^(1:obj.refine_level);
+                end
+                obj.DT = obj.dudt.dfdx.dx*obj.CFL;
             end
             
             obj.t = p.Results.t;
@@ -65,10 +79,13 @@ classdef Convergence < Tests.Test
             
             %TODO : a better way to test for the problem
             obj.dudt = p.Results.integrator;
-            obj.DT = obj.dudt.dfdx.dx*obj.CFL;
             
             
-            if isa(obj.dudt,'SSPTools.Steppers.IMEXRK')
+            if obj.isExactSolSet
+                sol = obj.exactSol(obj.Tfinal);
+                obj.referenceSolution = sol;
+            
+            elseif isa(obj.dudt,'SSPTools.Steppers.IMEXRK')
                 
                 %if IMEX: use ODE45 to get the solution vector
                 ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss);
@@ -126,6 +143,7 @@ classdef Convergence < Tests.Test
                     dt = min(dt, obj.Tfinal - t_);
                 end
                 [t_, y] = obj.dudt.getState();
+                
                 assert(isequal(obj.Tfinal, t_),'should be calculating error at tfinal');
                 
                 err = abs(y - obj.referenceSolution);
@@ -155,6 +173,16 @@ classdef Convergence < Tests.Test
             order = obsOrder(1);
         end
         
+        function err = getError(obj,Err)
+            
+            if strcmpi(Err, 'l2')
+                err = obj.L2Error;
+            elseif strcmpi(Err, 'l1')
+                err = obj.L1Error;
+            elseif strcmpi(Err, 'linf')
+                err = obj.LinfError;
+            end
+        end
         
         function complete(obj)
             % print the result of the test
