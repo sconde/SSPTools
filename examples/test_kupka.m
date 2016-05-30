@@ -24,23 +24,29 @@ imp_pro = TestProblems.ODEs.KupkaImplicit();
 dudt = SSPTools.Steppers.LoadIMEX('MethodName', 'IMEXSSP1111LPM',...
     'ExplicitProblem', exp_pro, 'ImplicitProblem', imp_pro, 'y0', y0);
 
-plot(t, y0(1),'sr');
-hold on
+% plot(t, y0(1),'sr');
+% hold on
+% 
+% while t < Tfinal
+%     
+%     y0 = dudt.takeStep(dt);
+%     t = t+ dt;
+%         
+%     plot(t, y0(1), 'sr');
+%     pause(0.1);
+% end
 
-while t < Tfinal
-    
-    y0 = dudt.takeStep(dt);
-    t = t+ dt;
-        
-    plot(t, y0(1), 'sr');
-    pause(0.1);
-end
+% convergence test
+convergencePDE = Tests.Convergence('integrator', dudt,'Tfinal', Tfinal,...
+    'DT', Tfinal./[40:10:80],'ExactSolution',@(t) tan(t));
+convergencePDE.run();
+convergencePDE.complete()
+l2Error = convergencePDE.getError('l2')
 
-
-hfig = gcf;
-axesObjs = get(hfig, 'Children');  %axes handles
-dataObjs = get(axesObjs, 'Children'); %handles to low-level graphics objects in axes
-objTypes = get(dataObjs, 'Type');  %type of low-level graphics object
-xdata = get(dataObjs, 'XData');  %data from low-level grahics objects
-xt = cell2mat(xdata);
-plot(xt, tan(xt), '-k');
+% hfig = gcf;
+% axesObjs = get(hfig, 'Children');  %axes handles
+% dataObjs = get(axesObjs, 'Children'); %handles to low-level graphics objects in axes
+% objTypes = get(dataObjs, 'Type');  %type of low-level graphics object
+% xdata = get(dataObjs, 'XData');  %data from low-level grahics objects
+% xt = cell2mat(xdata);
+% plot(xt, tan(xt), '-k');
