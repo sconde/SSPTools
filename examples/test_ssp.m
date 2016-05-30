@@ -3,8 +3,8 @@ clear all; close all; clc
 addpath('../');
 N = 300;
 
-testing = 'ERK';
-%testing = 'DIRK';
+%testing = 'ERK';
+testing = 'DIRK';
 
 y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
 

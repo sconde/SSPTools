@@ -2,6 +2,7 @@
 %example of vanderpol ODE
 clear all; close all; clc
 
+% TODO: fix ODEs
 
 addpath('../');
 method = '~/Dropbox/imex-linear/src/butcher-optimization/Method/DIRK/G/Pex2/Pim2/Plin4/S5/K1/method_r1_0.5451888988915_acc_-15.mat';

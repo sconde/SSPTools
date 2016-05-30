@@ -33,7 +33,7 @@ classdef IMEXRK < SSPTools.Steppers.RK
             addParameter(p,'name','MSRK-IMEXRK');
             addParameter(p, 'isSSP', false);
             addParameter(p, 'isButcher', true);
-            addParameter(p, 'ImplicitProblem', []);
+%             addParameter(p, 'ImplicitProblem', []);
             addParameter(p, 'At', []);
             addParameter(p, 'bt', []);
             addParameter(p, 'rt', []);

@@ -32,8 +32,8 @@ classdef RK < handle
             addParameter(p,'name','MSRK');
             addParameter(p, 'dfdx', []);
             addParameter(p, 'dfdt', []);
-            addParameter(p, 'ExplicitProblem', []);
-            addParameter(p, 'ImplicitProblem', []);
+%             addParameter(p, 'ExplicitProblem', []);
+%             addParameter(p, 'ImplicitProblem', []);
             addParameter(p, 'A', []);
             addParameter(p, 'b', []);
             addParameter(p, 'r', []);

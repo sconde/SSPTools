@@ -11,14 +11,15 @@ t = 0;
 
 testing = 'ERK';
 
-y0 = @(x) sin(x); %heaviside(x - (ceil((x+1)/2) -1)*2);
+y0 = @(x) 0.9*sin(x); %heaviside(x - (ceil((x+1)/2) -1)*2);
 
 imp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
 
-dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N);
+dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N,...
+    'Problem', imp_pro);
 
 dudt = SSPTools.Steppers.ERK('A', A, 'b',b, 's', s,...
-    'dfdx', dfdx, 'ExplicitProblem', imp_pro, 'y0', y0);
+    'dfdx', dfdx, 'y0', y0);
 
 line1 = plot(dfdx.x, dudt.y0(dfdx.x),'-r','linewidth',2);
 axis([0 2*pi -1 1]);

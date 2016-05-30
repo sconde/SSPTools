@@ -4,8 +4,8 @@ addpath('../')
 N = 16;
 Tfinal = 0.4;
 
-testing = 'ERK';
-%testing = 'DIRK';
+%testing = 'ERK';
+testing = 'DIRK';
 %testing = 'IMEXRK';
 %testing = 'IMEXRK-SSP11';
 
@@ -28,8 +28,8 @@ rk = load([file method]);
 A = rk.A; b = rk.b; s = rk.s;
 At = rk.At; bt = rk.bt;
 
-A = [0]; b = [1]; s = 1; %TODO: infert s from size(A,1)
-At = [1]; bt = [1];
+% A = [0]; b = [1]; s = 1; %TODO: infert s from size(A,1)
+% At = [1]; bt = [1];
 
 exp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
 exp_pro = TestProblems.PDEs.Burgers();
