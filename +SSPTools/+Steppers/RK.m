@@ -43,6 +43,7 @@ classdef RK < handle
             addParameter(p, 't', 0.0);
             addParameter(p, 't0', 0);
             addParameter(p, 'y0', []);
+            addParameter(p, 'ODE', []);
             p.parse(varargin{:});
             
             if isa(p.Results.dfdt, 'function_handle')
@@ -82,8 +83,10 @@ classdef RK < handle
                 obj.isSSP = true;
             end
                         
-            if ~isempty(obj.dfdx.problem)
+            if ~isempty(obj.dfdx)%.problem)
                 obj.ExplicitProblem = obj.dfdx.problem;
+            elseif ~isempty(p.Results.ODE)
+                obj.ExplicitProblem = p.Results.ODE;
             end
                         
             if isa(obj.ExplicitProblem, 'TestProblems.ODEs.ODE')

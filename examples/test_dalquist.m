@@ -18,8 +18,8 @@ Tfinal = 2;
 t = 0;
 f = @(u) u;
 
-testing = 'ERK';
-%testing = 'DIRK';
+%testing = 'ERK';
+testing = 'DIRK';
 
 y0 = 1;
 
@@ -27,10 +27,10 @@ vdp = TestProblems.ODEs.Dalquist('a', 2);
 
 if strcmpi(testing, 'erk')
     dudt = SSPTools.Steppers.ERK('A', A, 'b',b, 's', s,...
-        'ExplicitProblem', vdp, 'y0', y0);
+        'ODE', vdp, 'y0', y0);
 else
     dudt = SSPTools.Steppers.DIRK('A', At, 'b',bt, 's', s,...
-        'ExplicitProblem', vdp, 'y0', y0);
+        'ODE', vdp, 'y0', y0);
 end
 
 plot(t, y0(1),'sr');
