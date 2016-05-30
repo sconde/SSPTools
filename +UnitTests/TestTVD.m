@@ -16,14 +16,18 @@ classdef TestTVD < matlab.unittest.TestCase
             import matlab.unittest.constraints.AbsoluteTolerance
             
             y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
-            dfdx = SSPTools.Discretizers.FiniteDifference('N', 300,...
-                'domain', [-1, 1],'bc','periodic');
+            
+            
+
             
             
             exp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
             
+            dfdx = SSPTools.Discretizers.FiniteDifference('N', 300,...
+                'domain', [-1, 1],'bc','periodic','Problem', exp_pro);
+            
             dudt = SSPTools.Steppers.LoadERK('MethodName', 'FE',...
-                'dfdx', dfdx, 'ExplicitProblem', exp_pro, 'y0', y0);
+                'dfdx', dfdx,  'y0', y0);
             
             tvdPDE = Tests.SSP('integrator', dudt,'TVD',true,'CFLRefinement',0.001,...
                 'CFLMAX',1.06,'CFL',0.85);

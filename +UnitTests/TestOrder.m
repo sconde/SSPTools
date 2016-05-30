@@ -16,10 +16,10 @@ classdef TestOrder < matlab.unittest.TestCase
             import matlab.unittest.constraints.AbsoluteTolerance
             
             dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, ...
-                'N', 16);
+                'N', 16, 'Problem',TestProblems.PDEs.Burgers());
             
             dudt = SSPTools.Steppers.LoadERK('MethodName','MidPoint',...
-                'dfdx', dfdx, 'ExplicitProblem', TestProblems.PDEs.Burgers(),...
+                'dfdx', dfdx,...
                 'y0', @(x) sin(x));
             
             convergencePDE = Tests.Convergence('integrator', dudt,'Tfinal',...
@@ -33,16 +33,16 @@ classdef TestOrder < matlab.unittest.TestCase
         end
         
         function testBuckleeRK2(testCase)
-             % test RK2 convegence for BuckleyLeverett
+            % test RK2 convegence for BuckleyLeverett
             import matlab.unittest.TestCase
             import matlab.unittest.constraints.IsEqualTo
             import matlab.unittest.constraints.AbsoluteTolerance
-           
+            
             dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, ...
-                'N', 16);
+                'N', 16,'Problem',TestProblems.PDEs.BuckleyLeverett());
             
             dudt = SSPTools.Steppers.LoadERK('MethodName','MidPoint',...
-                'dfdx', dfdx, 'ExplicitProblem', TestProblems.PDEs.BuckleyLeverett(),...
+                'dfdx', dfdx,...
                 'y0', @(x) sin(x));
             
             convergencePDE = Tests.Convergence('integrator', dudt,'Tfinal',...
