@@ -47,20 +47,18 @@ classdef IMEXRK < SSPTools.Steppers.RK
             obj.bt = p.Results.bt;
             obj.ct = sum(obj.A,2);
             obj.name = p.Results.name;
-            obj.n = size(obj.x,1);
-            obj.I = speye(obj.n);
-            obj.Y = zeros(obj.n, obj.s);
+            
             obj.F = zeros(obj.n, obj.s);
             obj.G = zeros(obj.n, obj.s);
             obj.t = p.Results.t;
             obj.rt = p.Results.rt;
             
-            if ~isempty(p.Results.pim)            
+            if ~isempty(p.Results.pim)
                 obj.pim = p.Results.pim;
             else
                 obj.pim = obj.p;
             end
-                              
+            
             if ~isempty(p.Results.ImplicitProblem)
                 obj.ImplicitProblem = p.Results.ImplicitProblem;
                 obj.isImplicitLinear = p.Results.ImplicitProblem.isLinear;
@@ -70,7 +68,16 @@ classdef IMEXRK < SSPTools.Steppers.RK
                 obj.dgdx = p.Results.dgdx;
             end
             
-            if isa(obj.isImplicitLinear, 'TestProblems.PDEs.LinearDiffusion')
+            if isa(obj.ImplicitProblem, 'TestProblems.ODEs.ODE') && ...
+                    isa(obj.ExplicitProblem, 'TestProblems.ODEs.ODE')
+                
+                % assume the implicit problem is going to be a nonlinear
+                % problem
+                obj.solver = @(y, dt, i) nonlinearImplicitStage( obj, y, dt, i );
+                obj.F = @(t,y) obj.ExplicitProblem.f(t,y);
+                obj.G = @(t,y) obj.ImplicitProblem.f(t,y);
+                
+            elseif isa(obj.ImplicitProblem, 'TestProblems.PDEs.LinearDiffusion')
                 %FIX : this is only working for the diffusion paraemter
                 obj.solver = @(y, dt, i) linearSolve(obj, y, dt,i);
                 obj.F = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t,y));
@@ -95,21 +102,20 @@ classdef IMEXRK < SSPTools.Steppers.RK
                 obj.name = sprintf('IMEX%d(%d,%d,%d)%d',...
                     obj.p,obj.s, obj.s,obj.pim, obj.plin);
             end
-                        
+            
+            obj.n = size(obj.u0,1);
+            obj.I = speye(obj.n);
+            obj.Y = zeros(obj.n, obj.s);
         end
         
         
     end
     
     methods
-
-
+        
+        
         function [y] = takeStep(obj, dt)
             
-%             %check to see if CFL violation
-%             assert((dt/obj.dx) <= obj.CFL, ...
-%                 sprintf('ERK: CFL Violation (CFL = %3.2f )',dt/obj.dx) );
-%             
             u0 = obj.u0;
             
             % first stage implicit solve
