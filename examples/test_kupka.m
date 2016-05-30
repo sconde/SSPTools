@@ -47,6 +47,7 @@ convergencePDE.run();
 convergencePDE.complete()
 l2Error = convergencePDE.getError('l2')
 
+ErrorConst = max(l2Error(1:end-1)./l2Error(2:end))
 % hfig = gcf;
 % axesObjs = get(hfig, 'Children');  %axes handles
 % dataObjs = get(axesObjs, 'Children'); %handles to low-level graphics objects in axes
