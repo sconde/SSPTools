@@ -24,7 +24,7 @@ classdef TestSSPTools < matlab.unittest.TestCase
                 'dfdx', dfdx,'y0', y0);
             
             dt = 0.1; t = 0;
-                        
+            
             while t < 10*dt
                 ynew = dudt.takeStep(dt);
                 t = t+ dt;
@@ -35,7 +35,7 @@ classdef TestSSPTools < matlab.unittest.TestCase
             
         end
         
-                function testWENO5Burgers(testCase)
+        function testWENO5Burgers(testCase)
             % test for completition
             
             import matlab.unittest.TestCase
@@ -52,7 +52,7 @@ classdef TestSSPTools < matlab.unittest.TestCase
                 'dfdx', dfdx,'y0', y0);
             
             dt = 0.1; t = 0;
-                        
+            
             while t < 10*dt
                 ynew = dudt.takeStep(dt);
                 t = t+ dt;
@@ -63,7 +63,36 @@ classdef TestSSPTools < matlab.unittest.TestCase
             
         end
         
-       
-        
+        function testAdvectionDiffusion(testCase)
+            
+            
+            y0 = @(x) sin(x);
+            N = 8;
+            exp_pro = TestProblems.PDEs.LinearAdvection('a',1);
+            imp_pro = TestProblems.PDEs.LinearDiffusion();
+            
+            dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N,...
+                'Problem', exp_pro);
+            
+            
+            dgdx = SSPTools.Discretizers.Spectral('derivativeOrder',2, 'N', N,...
+                'Problem', imp_pro);
+            
+            sv = SSPTools.Steppers.LoadIMEX('MethodName','Stormer-Verlet',...
+                'dfdx', dfdx,...
+                'dgdx', dgdx, 'y0',y0);
+            
+            dt = 0.1; t = 0;
+            
+            while t < 10*dt
+                ynew = sv.takeStep(dt);
+                t = t+ dt;
+            end
+            
+            testCase.assertTrue(true)
+            assertTrue(testCase, true)
+            
+        end
+
     end
 end
