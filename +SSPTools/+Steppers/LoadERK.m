@@ -39,7 +39,7 @@ classdef LoadERK < SSPTools.Steppers.ERK
             elseif strcmpi(p.Results.MethodName, 'kutta3')
                 A = [0 0 0;0.5 0 0;-1 2 0]; b = [1/6 2/3 6/3]; s = 3;
             end
-
+           
             obj = obj@SSPTools.Steppers.ERK(varargin{:},'A',A,'b',b,'s',s);
             obj.name = p.Results.MethodName;
         end
