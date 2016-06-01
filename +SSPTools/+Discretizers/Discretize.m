@@ -13,7 +13,7 @@ classdef Discretize < handle
     end
     
     methods
-        function [y_x] = L(obj, y) end
+        function [y_x] = L(obj, t, y) end
     end
     
 end

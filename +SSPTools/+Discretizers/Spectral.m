@@ -40,14 +40,11 @@ classdef Spectral < SSPTools.Discretizers.Discretize
                 obj.problem = p.Results.Problem;
             end
             
-        end
-        
+        end % constructor
     end
     
     methods
         function [y] = L(obj, t, y)
-            %keyboard
-            %y = obj.D*y;
             y = obj.D*obj.problem.f(t,y);
         end
     end
@@ -128,7 +125,6 @@ classdef Spectral < SSPTools.Discretizers.Discretize
             end;
             DM=toeplitz(col1,row1);
             
-            %DM = (x_mult *DM;
         end
         
     end

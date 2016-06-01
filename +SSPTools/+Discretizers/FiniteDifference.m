@@ -48,13 +48,12 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
             c([1 2]) = [1 -1];
             obj.D = toeplitz(c,r)/(-obj.dx);
             
-        end
+        end % end constructor
         
     end
     
     methods 
         function [y] = L(obj, t, y)
-            %y = obj.D*y;
             y = obj.D*obj.problem.f(t,y);
         end
     end
