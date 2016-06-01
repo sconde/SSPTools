@@ -38,7 +38,7 @@ classdef Mesh1D < NDG.Mesh
             %end
             
             %function nodeCoords = get.nodeCoordinates(obj) % x-Grid
-            obj.solPts = obj.quadFunction(obj.nSolutionPoints);
+            [obj.solPts, obj.weights] = obj.quadFunction(obj.nSolutionPoints);
 
             [xSPs,xc] = meshgrid(obj.elementCenter,obj.Jacobian*obj.solPts);
             obj.nodeCoordinates = xSPs+xc; % x-Grid            

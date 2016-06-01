@@ -7,20 +7,20 @@ classdef Mesh < handle
         nElements
         nFaces
         nSolutionPoints
+        solPts;
+        Jacobian;
+        elementSize
+        nodeCoordinates
+        weights;
+        elementCenter
     end
     
     properties (Access = protected)
         nNodes;
         solutionPoints
-        weights
         elementNodes
         elementFaces
-        elementCenter
-        elementSize
-        nodeCoordinates
-        Jacobian
         quadFunction;
-        solPts;
     end
     
     methods
@@ -99,7 +99,7 @@ classdef Mesh < handle
             end
             w=2./(N*N1*P(:,N1).^2);
         end % Gausslobatto
-       
+        
     end % protected method
     
 end
