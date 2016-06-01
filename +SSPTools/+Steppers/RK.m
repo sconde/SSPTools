@@ -97,9 +97,9 @@ classdef RK < handle
             else
                 obj.L = @(t,y) obj.dfdx.L(t, y); 
                 obj.dx = obj.dfdx.dx;
-                obj.x = p.Results.dfdx.x;
+                obj.x = p.Results.dfdx.x(:); % make it a vector
             end
-
+            
             obj.isLinear = obj.ExplicitProblem.isLinear;
             
             if obj.isSSP
@@ -108,7 +108,7 @@ classdef RK < handle
                 obj.name = sprintf('RK(%d,%d)%d',obj.s, obj.p, obj.plin);
             end
             
-        end
+        end % RK constructor
     end
     
     methods %( Access = protected )
