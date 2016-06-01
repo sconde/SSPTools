@@ -55,7 +55,6 @@ classdef DIRK < SSPTools.Steppers.RK
                 if obj.isImplicitLinear
                     obj.solver = @(y, dt, i) linearSolve(obj, y, dt,i);
                     obj.DT = obj.dfdx.D;
-                    %obj.NL = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t,y));
                     obj.NL = @(t,y) obj.dfdx.L(t,y);
                 else
                     obj.NL = @nonlinearImplicitStage;
@@ -80,10 +79,6 @@ classdef DIRK < SSPTools.Steppers.RK
 
         function [y] = takeStep(obj, dt)
             
-%             %check to see if CFL violation
-%             assert((dt/obj.dx) <= obj.CFL, ...
-%                 sprintf('ERK: CFL Violation (CFL = %3.2f )',dt/obj.dx) );
-            
             u0 = obj.u0;
             
             % first stage implicit solve
@@ -91,9 +86,6 @@ classdef DIRK < SSPTools.Steppers.RK
             
             % intermediate stage value
             for i = 1:obj.s
-                
-                %obj.G(:,i) = obj.dgdx.L(obj.ImplicitProblem.f(dt + obj.ct(i), obj.Y(:,i)));
-
                 temp = u0;
                 for j = 1:i-1
                     temp = temp + dt*obj.A(i,j)*obj.L(dt + obj.c(j), obj.Y(:,j));

@@ -50,17 +50,11 @@ classdef ERK < SSPTools.Steppers.RK
     methods %( Access = protected )
         
         function [y] = takeStep(obj, dt)
-                        
-%             %check to see if CFL violation
-%             assert((dt/obj.dx) <= obj.CFL, ...
-%                 sprintf('ERK: CFL Violation (CFL = %3.2f )',dt/obj.dx) );
-            
             u0 = obj.u0;
             obj.Y(:,1) = u0;
             
             % intermediate stage value
             for i = 2:obj.s
-                
                 temp = u0;
                 for j = 1:i-1
                     temp = temp + dt*obj.A(i,j)*obj.L(dt + obj.c(j), obj.Y(:,j));

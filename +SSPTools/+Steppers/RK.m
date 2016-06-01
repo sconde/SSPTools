@@ -95,14 +95,7 @@ classdef RK < handle
                 obj.dx = [];
                 obj.x = [];
             else
-                if ~isa(obj.dfdx, 'WenoCore.Weno')
-                    % moving the flux computation in the differentiation
-                    obj.L = @(t,y) obj.dfdx.L(t, y); 
-                else
-                    obj.L = @(t,y) obj.dfdx.L(t, y);
-                end
-                
-                %obj.CFL = obj.ExplicitProblem.CFL_MAX;
+                obj.L = @(t,y) obj.dfdx.L(t, y); 
                 obj.dx = obj.dfdx.dx;
                 obj.x = p.Results.dfdx.x;
             end
