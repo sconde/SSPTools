@@ -55,7 +55,8 @@ classdef DIRK < SSPTools.Steppers.RK
                 if obj.isImplicitLinear
                     obj.solver = @(y, dt, i) linearSolve(obj, y, dt,i);
                     obj.DT = obj.dfdx.D;
-                    obj.NL = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t,y));
+                    %obj.NL = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t,y));
+                    obj.NL = @(t,y) obj.dfdx.L(t,y);
                 else
                     obj.NL = @nonlinearImplicitStage;
                     obj.solver = @(y, dt, i) nonlinearImplicitStage( obj, y, dt, i );

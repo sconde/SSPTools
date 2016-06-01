@@ -91,8 +91,10 @@ classdef Convergence < Tests.Test
                 ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss);
                 warning('off');
                 
-                odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y))...
-                    + obj.dudt.dgdx.L(obj.dudt.ImplicitProblem.f(t,y));
+ %               odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y))...
+ %                   + obj.dudt.dgdx.L(obj.dudt.ImplicitProblem.f(t,y));
+                 odefunc = @(t,y) obj.dudt.dfdx.L(t,y)...
+                    + obj.dudt.dgdx.L(t,y);
                 
                 [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
                     obj.dudt.y0(obj.dudt.dfdx.x),ode45_options);
@@ -108,7 +110,8 @@ classdef Convergence < Tests.Test
                 
                 ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss);
                 warning('off');
-                odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y));
+                %odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y));
+                odefunc = @(t,y) obj.dudt.dfdx.L(t,y);
                 [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
                     obj.dudt.y0(obj.dudt.dfdx.x),ode45_options);
                 sol = sol(end,:); sol = sol(:);

@@ -88,7 +88,7 @@ classdef RK < handle
             elseif ~isempty(p.Results.ODE)
                 obj.ExplicitProblem = p.Results.ODE;
             end
-                        
+                           
             if isa(obj.ExplicitProblem, 'TestProblems.ODEs.ODE')
                 obj.L = @(t,y) obj.ExplicitProblem.f(t,y);
                 obj.CFL = [];
@@ -96,7 +96,8 @@ classdef RK < handle
                 obj.x = [];
             else
                 if ~isa(obj.dfdx, 'WenoCore.Weno')
-                    obj.L = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t, y));
+                    % moving the flux computation in the differentiation
+                    obj.L = @(t,y) obj.dfdx.L(t, y); 
                 else
                     obj.L = @(t,y) obj.dfdx.L(t, y);
                 end

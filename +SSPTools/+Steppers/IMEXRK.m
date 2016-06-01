@@ -79,8 +79,10 @@ classdef IMEXRK < SSPTools.Steppers.RK
             elseif isa(obj.ImplicitProblem, 'TestProblems.PDEs.LinearDiffusion')
                 %FIX : this is only working for the diffusion paraemter
                 obj.solver = @(y, dt, i) linearSolve(obj, y, dt,i);
-                obj.F = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t,y));
-                obj.G = @(t,y) obj.dgdx.L(obj.ImplicitProblem.f(t,y));
+                %obj.F = @(t,y) obj.dfdx.L(obj.ExplicitProblem.f(t,y));
+                %obj.G = @(t,y) obj.dgdx.L(obj.ImplicitProblem.f(t,y));
+                obj.F = @(t,y) obj.dfdx.L(t,y);
+                obj.G = @(t,y) obj.dgdx.L(t,y);
                 obj.DT = -obj.ImplicitProblem.nu*obj.dgdx.D;
             else
                 obj.solver = @(y, dt, i) nonlinearImplicitStage( obj, y, dt, i );

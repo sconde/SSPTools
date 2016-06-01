@@ -45,8 +45,10 @@ classdef Spectral < SSPTools.Discretizers.Discretize
     end
     
     methods
-        function [y] = L(obj, y)
-            y = obj.D*y;
+        function [y] = L(obj, t, y)
+            %keyboard
+            %y = obj.D*y;
+            y = obj.D*obj.problem.f(t,y);
         end
     end
     

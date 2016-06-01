@@ -41,7 +41,8 @@ classdef ERK < SSPTools.Steppers.RK
                 obj.dfdx.f = obj.ExplicitProblem.f;
                 obj.dfdx.em = obj.ExplicitProblem.em;
             end
-        end
+                        
+        end % end constructor
         
         
     end
