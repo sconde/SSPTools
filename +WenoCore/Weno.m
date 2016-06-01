@@ -16,6 +16,7 @@ classdef Weno < handle
         lgpts_inx; % left ghost point index
         rgpts_inx; % right ghost point index
         xx_inx; % all the indeces
+        problem;
     end
     
     properties (Access = protected)
@@ -49,6 +50,7 @@ classdef Weno < handle
             addParameter(p,'epsilon', 1e-16);
             addParameter(p,'p', 2);
             addParameter(p,'kernel', []);
+            addParameter(p, 'Problem', []);
             addParameter(p,'weno_fcn', @WenoCoreDan.weno_basic);
             p.parse(varargin{:});
             
@@ -59,6 +61,10 @@ classdef Weno < handle
             obj.domain = p.Results.domain;
             obj.epsilon = p.Results.epsilon;
             obj.p = p.Results.p;
+            
+            if ~isempty(p.Results.Problem)
+                obj.problem = p.Results.Problem;
+            end
             
             if ~isempty(obj.domain)
                 obj.x = linspace(obj.domain(1),obj.domain(2),obj.nx);
