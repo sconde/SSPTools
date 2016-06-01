@@ -7,6 +7,7 @@ classdef Burgers < handle
        eqn;
        CFL_MAX = 1;
        isLinear = false;
+       em;
     end
     
     methods
@@ -16,6 +17,8 @@ classdef Burgers < handle
             
             addParamValue(p, 'y0', []);
             p.parse(varargin{:});
+            
+            obj.em = @(u) u;
             
         end
     end
