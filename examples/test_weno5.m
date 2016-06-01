@@ -3,7 +3,7 @@ clear all; close all; clc
 addpath('../')
 A = [0 0;1 0]; b = [1 0]; s = 2; %TODO: infert s from size(A,1)
 At = [0 0;0 1]; bt = [0 1];
-N = 50;
+N = 100;
 
 dt = 0.01;
 Tfinal = 2;
@@ -13,7 +13,8 @@ testing = 'ERK';
 
 y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
 
-imp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
+%imp_pro = TestProblems.PDEs.Burgers();
+imp_pro = TestProblems.PDEs.LinearAdvection('a',1);
 
 dfdx = WenoCore.Weno5('N', N, 'domain', [-1, 1],...
     'kernel', 'WENO5', 'epsilon', 1e-16, 'p', 2);
