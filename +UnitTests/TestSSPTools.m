@@ -93,6 +93,68 @@ classdef TestSSPTools < matlab.unittest.TestCase
             assertTrue(testCase, true)
             
         end
+        
+        function testAdvectionBurgers(testCase)
+            
+            
+            y0 = @(x) sin(x);
+            N = 8;
+            exp_pro = TestProblems.PDEs.Burgers();
+            imp_pro = TestProblems.PDEs.LinearAdvection('a',1);
+            
+            dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N,...
+                'Problem', exp_pro);
+            
+            
+            dgdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N,...
+                'Problem', imp_pro);
+            
+            sv = SSPTools.Steppers.LoadIMEX('MethodName','IMEXSSP3333',...
+                'dfdx', dfdx,...
+                'dgdx', dgdx, 'y0',y0);
+            
+            dt = 0.1; t = 0;
+            
+            while t < 10*dt
+                ynew = sv.takeStep(dt);
+                t = t+ dt;
+            end
+            
+            testCase.assertTrue(true)
+            assertTrue(testCase, true)
+            
+        end
+        
+        function testBurgersBucklee(testCase)
+            
+            
+            y0 = @(x) sin(x);
+            N = 8;
+            exp_pro = TestProblems.PDEs.BuckleyLeverett();
+            imp_pro = TestProblems.PDEs.Burgers();
+            
+            dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N,...
+                'Problem', exp_pro);
+            
+            
+            dgdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N,...
+                'Problem', imp_pro);
+            
+            sv = SSPTools.Steppers.LoadIMEX('MethodName','IMEX1',...
+                'dfdx', dfdx,...
+                'dgdx', dgdx, 'y0',y0);
+            
+            dt = 0.1; t = 0;
+            
+            while t < 10*dt
+                ynew = sv.takeStep(dt);
+                t = t+ dt;
+            end
+            
+            testCase.assertTrue(true)
+            assertTrue(testCase, true)
+            
+        end
 
     end
 end

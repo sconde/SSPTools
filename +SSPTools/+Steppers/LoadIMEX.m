@@ -112,6 +112,7 @@ classdef LoadIMEX < SSPTools.Steppers.IMEXRK
                     0 3/2 -3/2 1/2 1/2];
                 bt = [0 3/2 -3/2 1/2 1/2];
             elseif strcmpi(p.Results.MethodName', 'bpr')
+                % TODO: fix this, somehow not catching this
                 A = [0 0 0 0 0;
                     1 0 0 0 0;
                     4/9 2/9 0 0 0;
