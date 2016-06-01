@@ -15,3 +15,7 @@ res3 = run(test3); res3.table
 % run all run-time test 
 test4 = UnitTests.TestSSPTools;
 res4 = run(test4); res4.table
+
+% run Mesh1D tests
+test5 = UnitTests.TestMesh;
+res5 = run(test5); res5.table
