@@ -21,6 +21,5 @@ test5 = UnitTests.TestMesh;
 res5 = run(test5); res5.table
 
 % run TestDG with FE
-
 test6 = UnitTests.TestDG;
 res6 = run(test6); res6.table
