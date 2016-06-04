@@ -8,8 +8,11 @@ cellOfTest = {UnitTests.TestOrder; ...  % convergence tests
     UnitTests.TestDG;                   % DG Runtime
     };
 
+resultTable = [];
 for testInd = 1:numel(cellOfTest)
    test = cellOfTest{testInd};
-   res = run(test); res.table
+   res = run(test); res.table;
+   resultTable = [resultTable;res.table];
 end
     
+disp(resultTable);
