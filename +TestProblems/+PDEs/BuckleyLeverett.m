@@ -7,6 +7,7 @@ classdef BuckleyLeverett < handle
        eqn;
        CFL_MAX = 1;
        isLinear = false;
+       isSystem = false;
     end
     
     methods

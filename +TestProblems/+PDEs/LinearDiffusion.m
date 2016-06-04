@@ -7,6 +7,7 @@ classdef LinearDiffusion < handle
        eqn;
        isLinear = true;
        nu;
+       isSystem = false;
     end
     
     methods

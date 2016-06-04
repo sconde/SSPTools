@@ -8,6 +8,7 @@ classdef Burgers < handle
        CFL_MAX = 1;
        isLinear = false;
        em;
+       isSystem = false;
     end
     
     methods

@@ -9,6 +9,7 @@ classdef LinearAdvection < handle
        isLinear = true;
        a;
        em;
+       isSystem = false;
     end
     
     methods
