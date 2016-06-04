@@ -27,17 +27,21 @@ classdef Spectral < SSPTools.Discretizers.Discretize
             
             p.parse(varargin{:});
             
-            obj.x = p.Results.x;
-            obj.isSSP = p.Results.isSSP;
-            obj.derivativeOrder = p.Results.derivativeOrder;
-            obj.nx = p.Results.N;
-            
-            [obj.x, obj.D] = obj.fourdif(obj.nx, obj.derivativeOrder);
-            obj.D = -obj.D;
-            obj.dx = obj.x(2) - obj.x(1);
-            
             if ~isempty(p.Results.Problem)
                 obj.problem = p.Results.Problem;
+            end
+            
+            if ~obj.problem.isSystem
+                
+                obj.x = p.Results.x;
+                obj.isSSP = p.Results.isSSP;
+                obj.derivativeOrder = p.Results.derivativeOrder;
+                obj.nx = p.Results.N;
+                
+                [obj.x, obj.D] = obj.fourdif(obj.nx, obj.derivativeOrder);
+                obj.D = -obj.D;
+                obj.dx = obj.x(2) - obj.x(1);
+                
             end
             
         end % constructor
