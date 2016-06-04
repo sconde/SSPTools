@@ -37,7 +37,7 @@ classdef RK < handle
 %             addParameter(p, 'ImplicitProblem', []);
             addParameter(p, 'A', []);
             addParameter(p, 'b', []);
-            addParameter(p, 'r', []);
+            addParameter(p, 'r', -Inf);
             addParameter(p, 'p', []);
             addParameter(p, 'plin', []);
             addParameter(p, 'alpha', []);
@@ -64,6 +64,7 @@ classdef RK < handle
             obj.c = sum(obj.A,2);
             obj.s = numel(obj.b); %infer the number of stages from the length of b
             obj.p = p.Results.p;
+            obj.r = p.Results.r;
             
             if isempty(p.Results.plin)
                 obj.plin = obj.p;
