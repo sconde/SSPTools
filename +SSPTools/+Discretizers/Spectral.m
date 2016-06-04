@@ -8,6 +8,7 @@ classdef Spectral < SSPTools.Discretizers.Discretize
         nx;
         D;
         dx;
+        systemSize;
     end
     
     methods
@@ -41,6 +42,7 @@ classdef Spectral < SSPTools.Discretizers.Discretize
                 [obj.x, obj.D] = obj.fourdif(obj.nx, obj.derivativeOrder);
                 obj.D = -obj.D;
                 obj.dx = obj.x(2) - obj.x(1);
+                obj.systemSize = 1;
                 
             end
             
