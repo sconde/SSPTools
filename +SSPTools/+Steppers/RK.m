@@ -76,7 +76,7 @@ classdef RK < handle
             obj.name = p.Results.name;
             obj.dfdx = p.Results.dfdx;
             obj.t0 = p.Results.t0;
-                        
+                                    
             assert(isequal(obj.s, size(p.Results.A,1)),...
                 sprintf('RK A:Stage-count -- Num-Rows(A) != %d',obj.s));
             
@@ -129,7 +129,7 @@ classdef RK < handle
             y = obj.u0;
             t = obj.t;
             
-            if obj.dfdx.systemSize > 1
+            if ~isempty(obj.dfdx) && (obj.dfdx.systemSize > 1)
                 y = reshape(y, obj.dfdx.nx, obj.dfdx.systemSize);
             end
 %             %Q = [r ru E];
