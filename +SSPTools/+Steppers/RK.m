@@ -23,6 +23,7 @@ classdef RK < handle
         haveExact = false;
         x;
         u0;
+        systemSize;
     end
     
     methods
@@ -74,7 +75,7 @@ classdef RK < handle
             obj.name = p.Results.name;
             obj.dfdx = p.Results.dfdx;
             obj.t0 = p.Results.t0;
-            
+                        
             assert(isequal(obj.s, size(p.Results.A,1)),...
                 sprintf('RK A:Stage-count -- Num-Rows(A) != %d',obj.s));
             
@@ -126,6 +127,15 @@ classdef RK < handle
         function [t, y] = getState(obj)
             y = obj.u0;
             t = obj.t;
+            
+            if obj.dfdx.systemSize > 1
+                y = reshape(y, obj.dfdx.nx, obj.dfdx.systemSize);
+            end
+%             %Q = [r ru E];
+%             density   = u(1:obj.N);
+%             momentum  = u(obj.N+1:2*(obj.N));
+%             energy    = u(2*(obj.N)+1:3*(obj.N));
+%             keyboard
         end
         
     end

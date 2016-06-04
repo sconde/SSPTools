@@ -52,7 +52,7 @@ classdef Euler1D < handle
             obj.dx    = obj.L/obj.N;
             obj.BCr   = p.Results.BCr;
             obj.BCl   = p.Results.BCl;
-            obj.f     = @(t,u) rhs(u);
+            obj.f     = @(t,u) obj.rhs(u);
             
             if ~isempty(p.Results.ProblemType)
                 obj.ProblemType = p.Results.ProblemType;
@@ -61,12 +61,12 @@ classdef Euler1D < handle
             obj.initialize();
         end % Euler1D constructor
         
-        function U = rhs(obj, u) % acting like the L method?
+        function FU = rhs(obj, u) % acting like the L method?
             
             %Q = [r ru E];
-            density   = u(1:obj.N+1);
-            momentum  = u(obj.N+2:2*(obj.N+1));
-            energy    = u(2*(obj.N+1)+1:3*(obj.N+1));
+            density   = u(1:obj.N);
+            momentum  = u(obj.N+1:2*(obj.N));
+            energy    = u(2*(obj.N)+1:3*(obj.N));
             
             if strcmpi(obj.ProblemType, 'sod')
                 % Extend data and assign boundary conditions
@@ -75,7 +75,8 @@ classdef Euler1D < handle
                 [~, Ee] = obj.applyBC(energy,   obj.BCLvalue(3), obj.BCRvalue(3));   % Energy extension
             end
             
-            Q = [re(2:obj.N+1) me(2:obj.N+1) Ee(2:obj.N+1)];
+            %Q = [re(2:obj.N+1); me(2:obj.N+1); Ee(2:obj.N+1)];
+            Q = [re(2:end); me(2:end); Ee(2:end)]; %TODO: is this correct?
             
             FU = obj.flux(Q);
             
@@ -85,12 +86,13 @@ classdef Euler1D < handle
     
     methods (Access = private )
         
-        function F = flux(obj, u)
-            density   = u(1:obj.N+1);
-            momentum  = u(obj.N+2:2*(obj.N+1));
-            energy   = u(2*(obj.N+1)+1:3*(obj.N+1));
+        function F = flux(obj, y)
             
-            pressure = obj.closureModel(u);
+            density   = y(1:obj.N+1);
+            momentum  = y(obj.N+2:2*(obj.N+1));
+            energy   = y(2*(obj.N+1)+1:3*(obj.N+1));
+
+            pressure = obj.closureModel(y);
             
             F = [momentum;                                  % rho*u
                 (momentum.^2./density + pressure);          % rho*u^2 + p
@@ -123,7 +125,7 @@ classdef Euler1D < handle
             q = [1:m]';
             
             % Extend x
-            xe([m-q+1 NN+m+q]) = [xl-q*h xr+q*h];
+            xe([m-q+1 NN+m+q]) = [xl-q*obj.dx xr+q*obj.dx];
             xe((m+1):(NN+m)) = obj.x(1:NN);
             
             % Periodic extension of u
