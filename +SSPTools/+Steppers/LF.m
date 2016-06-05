@@ -98,9 +98,9 @@ classdef LF < handle
                 [~, me] = obj.BC(momentum, 'D', obj.problem.BCLvalue(2), 'N', obj.problem.BCRvalue(2));   % momentum extended
                 [~, Ee] = obj.BC(energy, 'D', obj.problem.BCLvalue(3), 'N', obj.problem.BCRvalue(3));   % Energy extension
             elseif strcmpi(obj.problem.ProblemType, 'shock')
-                [~, re] = obj.BC(density, 3.857143, 0);
-                [~, me] = obj.BC(momentum, 10.141852, 0);
-                [~, Ee] = obj.BC(energy, 39.1666661, 0);
+                [~, re] = obj.BC(density, 'D', 3.857143, 'N', 0);
+                [~, me] = obj.BC(momentum, 'D', 10.141852, 'D', 0);
+                [~, Ee] = obj.BC(energy, 'D', 39.1666661, 'N', 0);
             end
             
             Q = [re(2:obj.problem.N+1); me(2:obj.problem.N+1); Ee(2:obj.problem.N+1)];
@@ -112,33 +112,31 @@ classdef LF < handle
         end % rhs
         
         function [t] = takeStep(obj, dt)
-            dt;
             % apply the boundary condition
             Q = obj.y0;
 
             [~, dt, maxvel] = obj.problem.closureModel(Q);
             
-            if (obj.t0 + dt > obj.tFinal)
-                dt = obj.tFinal - obj.t0;
-            end
-            dt;
+            dt = min(obj.tFinal - obj.t0, dt);
+%             if (obj.t0 + dt > obj.tFinal)
+%                 dt = obj.tFinal - obj.t0;
+%             end
             
-            if ~isreal(dt)
-                keyboard
-            end
-            
-            lam = dt/obj.dx;
+%             if ~isreal(dt)
+%                 keyboard
+% %             end
+%             
+%             lam = dt/obj.dx;
             FU = obj.rhs(maxvel, Q);
-            maxvel
             
             u0 = Q + dt*FU;
             t = obj.t0 + dt;
             obj.y0 = u0;
             obj.t0 = t;
-            
-            if ~isreal(obj.t0)
-                keyboard
-            end
+%             
+%             if ~isreal(obj.t0)
+%                 keyboard
+%             end
         end
         
         function resetInitCondition(obj)
