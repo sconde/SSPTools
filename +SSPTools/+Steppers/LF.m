@@ -9,6 +9,7 @@ classdef LF < handle
         t0;
         y0;
         t;
+        tFinal;
     end
     
     properties (Access = protected)
@@ -21,6 +22,7 @@ classdef LF < handle
         haveExact = false;
         x;
         systemSize;
+        BC;
     end
     
     methods
@@ -32,6 +34,7 @@ classdef LF < handle
             addParameter(p, 'Problem', []);
             addParameter(p, 'y0', []);
             addParameter(p, 't0', 0.0);
+            addParameter(p, 'Tfinal', []);
             p.parse(varargin{:});
             
             p.parse(varargin{:});
@@ -52,6 +55,10 @@ classdef LF < handle
             
             obj.t0 = p.Results.t0;
             
+            if ~isempty(p.Results.Tfinal)
+                obj.tFinal = p.Results.Tfinal;
+            end
+            
             %TODO: is this true?
             obj.isSSP = true;
             
@@ -62,30 +69,76 @@ classdef LF < handle
             obj.systemSize = obj.problem.systemSize;
             obj.name = 'Lax?Friedrichs';
             
+            % set the boundary condition function
+            obj.BC = @(u, bcl, ul, bcr, ur) obj.problem.applyBC(u, bcl, ul, bcr, ur);
         end % LF constructor
     end
     
     methods %( Access = protected )
         
-        function numFlux = numericalFlux(obj, dt, t, u, v)
-           % function numFlux = numericalFlux(obj, u, v)
-           
-           lam = dt/obj.dx;
-           % evaluate the flux
-           fu = obj.ExplicitProblem.f(t, u);
-           fv = obj.ExplicitProblem.f(t, v);
-           numFlux = (fu + fv)/2 - lam/2*(v-u);
+        function numFlux = numericalFlux(obj, maxvel, u, v)
+            % function numFlux = numericalFlux(obj, u, v)
+            
+            % evaluate the flux
+            fu = obj.problem.flux(u);
+            fv = obj.problem.flux(v);
+            numFlux = (fu + fv)/2 - maxvel/2*(v-u);
         end
         
-        function [t0, u0] = takeStep(obj, dt)
-            Q = obj.y0;
+        function FU = rhs(obj,maxvel, u) % acting like the L method?
             
-            % get the time scale
-            [~, dt] = obj.problem.closureModel(Q);
- 
-            u0 = Q + dt*obj.L(dt, Q);
+            %Q = [r ru E];
+            density   = u(1:obj.problem.N);
+            momentum  = u(obj.problem.N+1:2*(obj.problem.N));
+            energy    = u(2*(obj.problem.N)+1:3*(obj.problem.N));
+            
+            if strcmpi(obj.problem.ProblemType, 'sod')
+                % Extend data and assign boundary conditions
+                [~, re] = obj.BC(density, 'D', obj.problem.BCLvalue(1), 'D', obj.problem.BCRvalue(1));   % rho extended
+                [~, me] = obj.BC(momentum, 'D', obj.problem.BCLvalue(2), 'N', obj.problem.BCRvalue(2));   % momentum extended
+                [~, Ee] = obj.BC(energy, 'D', obj.problem.BCLvalue(3), 'N', obj.problem.BCRvalue(3));   % Energy extension
+            elseif strcmpi(obj.problem.ProblemType, 'shock')
+                [~, re] = obj.BC(density, 3.857143, 0);
+                [~, me] = obj.BC(momentum, 10.141852, 0);
+                [~, Ee] = obj.BC(energy, 39.1666661, 0);
+            end
+            
+            Q = [re(2:obj.problem.N+1); me(2:obj.problem.N+1); Ee(2:obj.problem.N+1)];
+            Qp = [re(3:obj.problem.N+2); me(3:obj.problem.N+2); Ee(3:obj.problem.N+2)];
+            Qm = [re(1:obj.problem.N); me(1:obj.problem.N); Ee(1:obj.problem.N)];
+            
+            FU = -(obj.numericalFlux(maxvel, Q, Qp) - obj.numericalFlux(maxvel, Qm, Q))/obj.dx;
+            
+        end % rhs
+        
+        function [t] = takeStep(obj, dt)
+            dt;
+            % apply the boundary condition
+            Q = obj.y0;
+
+            [~, dt, maxvel] = obj.problem.closureModel(Q);
+            
+            if (obj.t0 + dt > obj.tFinal)
+                dt = obj.tFinal - obj.t0;
+            end
+            dt;
+            
+            if ~isreal(dt)
+                keyboard
+            end
+            
+            lam = dt/obj.dx;
+            FU = obj.rhs(maxvel, Q);
+            maxvel
+            
+            u0 = Q + dt*FU;
+            t = obj.t0 + dt;
             obj.y0 = u0;
-            obj.t0 = obj.t0 + dt;
+            obj.t0 = t;
+            
+            if ~isreal(obj.t0)
+                keyboard
+            end
         end
         
         function resetInitCondition(obj)
