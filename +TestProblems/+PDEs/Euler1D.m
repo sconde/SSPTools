@@ -19,15 +19,21 @@ classdef Euler1D < handle
         domain;
         gamma;
         CFL;
-    end
-    
-    properties( Access = private)
         ProblemType;
         %maxvel;
         BCr;
         BCl;
         BCLvalue;
         BCRvalue;
+    end
+    
+    properties( Access = private)
+        %         ProblemType;
+        %         %maxvel;
+        %         BCr;
+        %         BCl;
+        %         BCLvalue;
+        %         BCRvalue;
     end
     
     methods
@@ -54,7 +60,6 @@ classdef Euler1D < handle
             obj.dx    = obj.L/obj.N;
             obj.BCr   = p.Results.BCr;
             obj.BCl   = p.Results.BCl;
-            obj.f     = @(t,u) obj.rhs(u);
             obj.CFL   = p.Results.CFL;
             
             if ~isempty(p.Results.ProblemType)
@@ -64,7 +69,7 @@ classdef Euler1D < handle
             obj.initialize();
         end % Euler1D constructor
         
-        function [p, k] = closureModel(obj, u)
+        function [p, k, maxvel] = closureModel(obj, u)
             % ideal gas law
             density   = u(1:obj.N);
             momentum  = u(obj.N+1:2*(obj.N));
@@ -77,58 +82,7 @@ classdef Euler1D < handle
             k = obj.CFL*obj.dx/maxvel;
         end
         
-        function FU = rhs(obj,dt, u) % acting like the L method?
-            
-            %Q = [r ru E];
-            density   = u(1:obj.N);
-            momentum  = u(obj.N+1:2*(obj.N));
-            energy    = u(2*(obj.N)+1:3*(obj.N));
-            
-            if strcmpi(obj.ProblemType, 'sod')
-                % Extend data and assign boundary conditions
-                [~, re] = obj.applyBC(density,  obj.BCLvalue(1), obj.BCRvalue(1));   % rho extended
-                [~, me] = obj.applyBC(momentum, obj.BCLvalue(2), obj.BCRvalue(2));   % momentum extended
-                [~, Ee] = obj.applyBC(energy,   obj.BCLvalue(3), obj.BCRvalue(3));   % Energy extension
-            elseif strcmpi(obj.ProblemType, 'shock')
-                [~, re] = obj.applyBC(density, 3.857143, 0);
-                [~, me] = obj.applyBC(momentum, 10.141852, 0);
-                [~, Ee] = obj.applyBC(energy, 39.1666661, 0);
-            end
-            
-            Q = [re(2:obj.N+1); me(2:obj.N+1); Ee(2:obj.N+1)];
-            Qp = [re(3:obj.N+2); me(3:obj.N+2); Ee(3:obj.N+2)];
-            Qm = [re(1:obj.N); me(1:obj.N); Ee(1:obj.N)];
-            
-            FU = -(obj.numericalFlux(dt, Q, Qp) - obj.numericalFlux(dt, Qm, Q))/obj.dx;
-            
-        end % rhs
-        
-    end
-    
-    methods (Access = private )
-        
-        function fhat = numericalFlux(obj, dt, u, v)
-            fu = obj.flux(u);
-            fv = obj.flux(v);
-            lam = dt/obj.dx;
-            fhat = (fu + fv)/2 - lam/2*(v-u);
-        end
-        
-        function F = flux(obj, y)
-            
-            density   = y(1:obj.N);
-            momentum  = y(obj.N+1:2*(obj.N));
-            energy   = y(2*(obj.N)+1:3*(obj.N));
-            
-            pressure = obj.closureModel(y);
-            
-            F = [momentum;                                  % rho*u
-                (momentum.^2./density + pressure);          % rho*u^2 + p
-                (energy + pressure).*momentum./density];    % (E + p)u
-            
-        end % flux
-        
-        function [xe, ue] = applyBC(obj, u, ul, ur)
+        function [xe, ue] = applyBC(obj, u, BCl, ul, BCr, ur)
             % extend.m : Routine to impose boundary conditions on scalar function by extension
             % Purpose : Extend dependent and independent vectors (x, u), by m cells subject to
             % appropriate boundary conditions
@@ -148,7 +102,7 @@ classdef Euler1D < handle
             xe((m+1):(NN+m)) = obj.x(1:NN);
             
             % Periodic extension of u
-            if (obj.BCl == 'P') || (obj.BCr == 'P')
+            if (BCl == 'P') || (BCr == 'P')
                 ue(m-q+1) = u(NN-q);
                 ue(NN+m+q) = u(q+1);
                 ue((m+1):(NN+m)) = u(1:NN);
@@ -156,14 +110,14 @@ classdef Euler1D < handle
             end
             
             % Left extension
-            if obj.BCl == 'D'
+            if BCl == 'D'
                 ue(m-q+1) = -u(q+1) + 2*ul;
             else
                 ue(m-q+1) = u(q+1);
             end
             
             % Right extension
-            if obj.BCr == 'D'
+            if BCr == 'D'
                 ue(NN+m+q) = -u(NN-q) + 2*ur;
             else
                 ue(NN+m+q) = u(NN-q);
@@ -172,12 +126,31 @@ classdef Euler1D < handle
             
         end
         
+        function F = flux(obj,  y)
+            
+            density   = y(1:obj.N);
+            momentum  = y(obj.N+1:2*(obj.N));
+            energy   = y(2*(obj.N)+1:3*(obj.N));
+            
+            pressure = obj.closureModel(y);
+            
+            F = [momentum;                                  % rho*u
+                (momentum.^2./density + pressure);          % rho*u^2 + p
+                (energy + pressure).*momentum./density];    % (E + p)u
+            
+        end % flux
+        
+    end
+    
+    methods (Access = private )
+        
         function initialize(obj)
             
             [r, ru, E] = deal(zeros(obj.N, 1));
             
             if strcmpi(obj.ProblemType, 'sod')
                 obj.x = linspace(obj.domain(1), obj.domain(2), obj.N)';
+                obj.dx = obj.x(2) - obj.x(1);
                 %obj.x = [obj.domain(1):obj.dx:obj.domain(2)]';
                 indX = obj.x < 0.5;
                 
@@ -211,6 +184,7 @@ classdef Euler1D < handle
                 end
                 obj.y0 = [r; ru; E];
             end
+            
         end % initialize
         
         function [xe, ue] = extend(obj, x, u, h, m, BCl, ul, BCr, ur)

@@ -8,6 +8,61 @@ classdef TestSSPTools < matlab.unittest.TestCase
     methods (Test)
         % includes unit test functions
         
+        function testEulerShockLF(testCase)
+            % test for completition
+            
+            import matlab.unittest.TestCase
+            
+            % Set Problem paramters
+            L = 1;
+            N = 2048;
+            
+            dt = 0.001;
+            Tfinal = 0.02;
+            
+            euler = TestProblems.PDEs.Euler1D('ProblemType', 'Sod','N',N);
+            
+            dudt = SSPTools.Steppers.LF('Problem', euler,'y0', euler.y0, 'Tfinal', Tfinal);
+            
+            t = 0;
+            
+            while t < Tfinal
+                [t] = dudt.takeStep(dt);
+            end
+            
+            testCase.assertTrue(true)
+            assertTrue(testCase, true)
+            
+        end
+        
+        
+        function testEulerSODLF(testCase)
+            % test for completition
+            
+            import matlab.unittest.TestCase
+            
+            % Set Problem paramters
+            L = 1;
+            N = 2048;
+            
+            dt = 0.001;
+            Tfinal = 0.1;
+            
+            euler = TestProblems.PDEs.Euler1D('ProblemType', 'Sod','N',N);
+            
+            dudt = SSPTools.Steppers.LF('Problem', euler,'y0', euler.y0, 'Tfinal', Tfinal);
+            
+            t = 0;
+            
+            while t < Tfinal
+                [t] = dudt.takeStep(dt);
+            end
+            
+            testCase.assertTrue(true)
+            assertTrue(testCase, true)
+            
+        end
+        
         function testWENO5LinearAdvection(testCase)
             % test for completition
             
@@ -155,6 +210,6 @@ classdef TestSSPTools < matlab.unittest.TestCase
             assertTrue(testCase, true)
             
         end
-
+        
     end
 end
