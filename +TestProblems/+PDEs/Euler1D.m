@@ -101,6 +101,7 @@ classdef Euler1D < handle
             
             FU = -(obj.numericalFlux(dt, Q, Qp) - obj.numericalFlux(dt, Qm, Q))/obj.dx;
             
+            
         end % rhs
         
     end
