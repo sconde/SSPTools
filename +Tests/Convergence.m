@@ -80,7 +80,6 @@ classdef Convergence < Tests.Test
             obj.refinement_type = p.Results.refinement_type;
             obj.epss = p.Results.NonlinearEps;
             
-            
             if obj.isExactSolSet
                 sol = obj.exactSol(obj.Tfinal);
                 obj.referenceSolution = sol;
@@ -93,6 +92,7 @@ classdef Convergence < Tests.Test
                 
  %               odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y))...
  %                   + obj.dudt.dgdx.L(obj.dudt.ImplicitProblem.f(t,y));
+ 
                  odefunc = @(t,y) obj.dudt.dfdx.L(t,y)...
                     + obj.dudt.dgdx.L(t,y);
                 
@@ -110,12 +110,21 @@ classdef Convergence < Tests.Test
                 
                 ode45_options = odeset('RelTol',obj.epss,'AbsTol',obj.epss);
                 warning('off');
-                %odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y));
-                odefunc = @(t,y) obj.dudt.dfdx.L(t,y);
-                [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
-                    obj.dudt.y0(obj.dudt.dfdx.x),ode45_options);
-                sol = sol(end,:); sol = sol(:);
-                obj.referenceSolution = sol;
+                
+                if ~isempty(obj.dudt.dfdx)
+                    %odefunc = @(t,y) obj.dudt.dfdx.L(obj.dudt.ExplicitProblem.f(t,y));
+                    odefunc = @(t,y) obj.dudt.dfdx.L(t,y);
+                    [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
+                        obj.dudt.y0(obj.dudt.dfdx.x),ode45_options);
+                    sol = sol(end,:); sol = sol(:);
+                    obj.referenceSolution = sol;
+                else % ODEs
+                    odefunc = @(t,y) obj.dudt.ExplicitProblem.f(t,y);
+                    [~,sol] = ode45(@(t,y) odefunc(t, y),[0 obj.Tfinal],...
+                        obj.dudt.y0,ode45_options);
+                    sol = sol(end,:); sol = sol(:);
+                    obj.referenceSolution = sol;
+                end
                 
             else
                 error('not yet implemented');
@@ -142,10 +151,14 @@ classdef Convergence < Tests.Test
                 
                 while t_ < obj.Tfinal
                     obj.dudt.takeStep(dt);
-                    t_ = t_ + dt;
+                    [t_, ~] = obj.dudt.getState();
+                    %t_ = t_ + dt;
                     dt = min(dt, obj.Tfinal - t_);
+%                     t_
+%                     pause
                 end
                 [t_, y] = obj.dudt.getState();
+                %keyboard
                 
                 assert(isequal(obj.Tfinal, t_),'should be calculating error at tfinal');
                 
