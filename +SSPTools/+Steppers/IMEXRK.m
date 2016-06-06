@@ -30,7 +30,7 @@ classdef IMEXRK < SSPTools.Steppers.RK
             
             p = inputParser;
             p.KeepUnmatched = true;
-            addParameter(p,'name','MSRK-IMEXRK');
+            addParameter(p,'name','IMEXRK');
             addParameter(p, 'isSSP', false);
             addParameter(p, 'isButcher', true);
             addParameter(p, 'ImplicitODE', []);
@@ -47,11 +47,25 @@ classdef IMEXRK < SSPTools.Steppers.RK
             obj.bt = p.Results.bt;
             obj.ct = sum(obj.A,2);
             obj.name = p.Results.name;
-            
+                        
             obj.F = zeros(obj.n, obj.s);
             obj.G = zeros(obj.n, obj.s);
             obj.t = p.Results.t;
-            obj.rt = p.Results.rt;
+            
+            % get the SSP coefficient of the method
+            if ~isempty(p.Results.rt) && ~isinf(p.Results.rt)
+                obj.rt = p.Results.rt;
+                obj.isSSP = (obj.isSSP && true);
+            else
+                obj.rt = obj.am_radius(obj.At, obj.bt(:));
+                if obj.rt > 0
+                    obj.isSSP = (obj.isSSP && true);
+                else
+                    obj.isSSP = false;
+                end
+            end
+            
+            % check that r and rt are both positive
             
             if ~isempty(p.Results.pim)
                 obj.pim = p.Results.pim;
@@ -93,13 +107,13 @@ classdef IMEXRK < SSPTools.Steppers.RK
             else
                 obj.u0 = obj.y0;
             end
-            
+           
             if obj.isSSP
                 obj.name = sprintf('SSP%d(%d,%d,%d)%d',...
-                    obj.p,obj.s, obj.s,obj.pim, obj.plin);
+                   obj.p,obj.s, obj.s,obj.pim, obj.plin);
             else
                 obj.name = sprintf('IMEX%d(%d,%d,%d)%d',...
-                    obj.p,obj.s, obj.s,obj.pim, obj.plin);
+                   obj.p,obj.s, obj.s,obj.pim, obj.plin);
             end
             
             obj.n = size(obj.u0,1);

@@ -72,9 +72,11 @@ classdef RK < handle
                 obj.r = obj.am_radius(obj.A, obj.b(:));
                 if obj.r > 0
                     obj.isSSP = true;
+                else
+                    obj.isSSP = false;
                 end
             end
-            
+                        
             if isempty(p.Results.plin)
                 obj.plin = obj.p;
             else
