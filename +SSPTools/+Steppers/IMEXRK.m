@@ -57,6 +57,8 @@ classdef IMEXRK < SSPTools.Steppers.RK
                 obj.rt = p.Results.rt;
                 obj.isSSP = (obj.isSSP && true);
             else
+                %TODO: this only get the RK method's SSP, not IMEXRK ssp coefficient.
+                % need to calculate this correctly
                 obj.rt = obj.am_radius(obj.At, obj.bt(:));
                 if obj.rt > 0
                     obj.isSSP = (obj.isSSP && true);
