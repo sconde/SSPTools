@@ -19,7 +19,7 @@ classdef Dalquist < TestProblems.ODEs.ODE
             p.parse(varargin{:});
             
             obj.name = 'Dalquist';
-            obj.isLinear = false;
+            obj.isLinear = true;
             
             obj.a = p.Results.a;
             obj.f = @(t, u) obj.a*u;
@@ -28,9 +28,4 @@ classdef Dalquist < TestProblems.ODEs.ODE
         
     end
     
-    methods (Access = protected)
-        function dudt = rhs(ep, u)
-            dudt = [u(2);(1/ep)*(-u(1) + (1 - u(1)^2)*u(2))];
-        end
-    end
 end
