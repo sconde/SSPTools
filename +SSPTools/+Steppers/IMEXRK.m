@@ -128,6 +128,15 @@ classdef IMEXRK < SSPTools.Steppers.RK
     
     methods
         
+        function butcherCoef(obj)
+            % print the explicit method
+            fprintf('Explicit RK\n');
+            obj.printCoeff(obj.A, obj.b, obj.c);
+            
+            % print the implicit method
+            fprintf('\n\nImplicit RK\n');
+            obj.printCoeff(obj.At, obj.bt, obj.ct);
+        end
         
         function [y] = takeStep(obj, dt)
             

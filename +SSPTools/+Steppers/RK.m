@@ -120,6 +120,12 @@ classdef RK < handle
     end
     
     methods %( Access = protected )
+        
+        function butcherCoef(obj)
+            %TODO: don't print the zeros
+            obj.printCoeff(obj.A, obj.b, obj.c);
+        end
+        
         function [y] = takeStep(obj, dt) end
         
         function resetInitCondition(obj)
@@ -186,7 +192,16 @@ classdef RK < handle
     end
     
     
-    methods ( Access = private )
+    methods ( Access = protected )
+        
+        function printCoeff(obj, A, b, c)
+            %TODO: don't print the zeros
+            del = repmat(' %5.4f ',1, obj.s);
+            fprintf(1,['%5.4f |' del '\n'],[c A]');
+            fprintf(1,'%s\n',repmat('-',1,8*(obj.s+1)));
+            fprintf(1,'%6s |',repmat(' ',1,5));
+            fprintf(1,[del '\n'], b);
+        end
         
         function obj = setL(obj)
             obj.L = @(t, y) obj.L(y);
