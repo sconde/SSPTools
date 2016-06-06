@@ -25,6 +25,7 @@ classdef SSP < Tests.Test
         TVD;
         CFLMAX;
         cflRefine;
+        sspCoef; % theorical ssp coef
     end
     
     
@@ -69,6 +70,11 @@ classdef SSP < Tests.Test
             obj.DT = obj.dudt.dfdx.dx*obj.cfl;
             [~, y] = obj.dudt.getState();
             obj.initTV = obj.calcTV(y);
+            
+            if obj.dudt.isSSP
+                obj.sspCoef = obj.dudt.r;
+            end
+            
         end
         
         
@@ -78,14 +84,14 @@ classdef SSP < Tests.Test
             numViolation = 0;
             tvbSolution = [];
             tvdSolution = [];
-            cfl = obj.cfl;
-            dx = obj.dudt.dfdx.dx;
-            while cfl < obj.CFLMAX
+            cfl_ = obj.cfl;
+            dx_ = obj.dudt.dfdx.dx;
+            while cfl_ < obj.CFLMAX
                 obj.dudt.resetInitCondition();
                 [~, y] = obj.dudt.getState();
                 tv = obj.calcTV(y);
                 tvmax = tv;
-                dt = cfl*dx;
+                dt = cfl_*dx_;
                 ti = 0;
                 tv_violation = false;
                 TVMAX = [];
@@ -99,14 +105,14 @@ classdef SSP < Tests.Test
                 end
                 
                 if obj.testTVB
-                    tvbSolution = [tvbSolution; [cfl max(TVMAX)]];
+                    tvbSolution = [tvbSolution; [cfl_ max(TVMAX)]];
                 end
                 
                 if obj.testTVD
-                    tvdSolution = [tvdSolution; [cfl max(diff(TVMAX))]];
+                    tvdSolution = [tvdSolution; [cfl_ max(diff(TVMAX))]];
                 end
                 
-                cfl = cfl + obj.cflRefine;
+                cfl_ = cfl_ + obj.cflRefine;
             end
             obj.TVB = tvbSolution;
             obj.TVD = tvdSolution;
@@ -120,7 +126,7 @@ classdef SSP < Tests.Test
             obj.calculateSSP();
             
             %now plot the solution
-            semilogy(obj.TVD(:,1), obj.TVD(:,2),'s');
+            semilogy(obj.TVD(:,1), obj.TVD(:,2),'x');
             ylim([1e-20 1]);
         end
 
