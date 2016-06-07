@@ -54,6 +54,7 @@ classdef ERK < SSPTools.Steppers.RK
             % returns the new solution (y) and time-step taken (dt)
             u0 = obj.u0;
             obj.Y(:,1) = u0;
+            obj.dt_ = dt;
             
             % intermediate stage value
             for i = 2:obj.s
@@ -72,8 +73,21 @@ classdef ERK < SSPTools.Steppers.RK
                 y = y + dt*obj.b(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
             end
             
+            % compute the embedding solution
+            if obj.isEmbedded
+                yhat = u0;
+                for i = 1:obj.s
+                    yhat = yhat + dt*obj.bhat(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
+                end
+                
+                [y, t] = obj.stepSizeControl(dt, y, yhat);
+            else
+                obj.nextDt = dt;
+                t = obj.t + dt;
+            end
+            
             obj.u0 = y;
-            obj.t = obj.t + dt;
+            obj.t  = t;
         end
         
     end

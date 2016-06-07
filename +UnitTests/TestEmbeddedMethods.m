@@ -25,7 +25,7 @@ classdef TestEmbeddedMethods < matlab.unittest.TestCase
                 'Problem', exp_pro);
             
             dudt = SSPTools.Steppers.LoadERK('MethodName', 'Merson45',...
-                'dfdx', dfdx, 'y0', y0);
+                'dfdx', dfdx, 'y0', y0, 'VariableStepSize', true);
             
             convergencePDE = Tests.Convergence('integrator', dudt,'Tfinal', Tfinal,...
                 'CFL', (1/2).^(1:5));
@@ -57,7 +57,7 @@ classdef TestEmbeddedMethods < matlab.unittest.TestCase
                 'Problem', exp_pro);
             
             dudt = SSPTools.Steppers.LoadERK('MethodName', 'Zonneveld43',...
-                'dfdx', dfdx, 'y0', y0);
+                'dfdx', dfdx, 'y0', y0, 'VariableStepSize', true);
             
             convergencePDE = Tests.Convergence('integrator', dudt,'Tfinal', Tfinal,...
                 'CFL', (1/2).^(1:5));

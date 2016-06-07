@@ -97,7 +97,7 @@ classdef SSP < Tests.Test
                 TVMAX = [];
                 
                 for ti = 1:obj.Steps
-                    obj.dudt.takeStep(dt);
+                    [~,dt] = obj.dudt.takeStep(dt);
                     [~, y] = obj.dudt.getState();
                     tv_new = obj.calcTV(y);
                     TVMAX = [TVMAX; tv_new];
