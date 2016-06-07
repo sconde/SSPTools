@@ -41,7 +41,7 @@ classdef ERK < SSPTools.Steppers.RK
                 obj.dfdx.f = obj.ExplicitProblem.f;
                 obj.dfdx.em = obj.ExplicitProblem.em;
             end
-                        
+                      
         end % end constructor
         
         
@@ -49,7 +49,9 @@ classdef ERK < SSPTools.Steppers.RK
     
     methods %( Access = protected )
         
-        function [y] = takeStep(obj, dt)
+        function [y, dt] = takeStep(obj, dt)
+            % function [y, dt] = takeStep(dt)
+            % returns the new solution (y) and time-step taken (dt)
             u0 = obj.u0;
             obj.Y(:,1) = u0;
             

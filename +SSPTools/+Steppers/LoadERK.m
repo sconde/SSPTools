@@ -19,6 +19,7 @@ classdef LoadERK < SSPTools.Steppers.ERK
             
             gam = p.Results.Theta;
             
+            bhat = []; r = -Inf;
             if strcmpi(p.Results.MethodName, 'fe')
                 A = [0]; b = [1]; r = 1;
             elseif strcmpi(p.Results.MethodName, 'ssp22')
@@ -38,7 +39,7 @@ classdef LoadERK < SSPTools.Steppers.ERK
                     1/2 0 0 0;
                     0 1/2 0 0;
                     0 0 1 0]; 
-                b = [1/6 1/3 1/3 1/6]; r = -Inf;
+                b = [1/6 1/3 1/3 1/6]; %r = -Inf;
             elseif strcmpi(p.Results.MethodName, 'midpoint')
                 A = [0 0;1/2 0]; b = [0 1]; r = -Inf;
             elseif strcmpi(p.Results.MethodName, 'theta')
@@ -51,9 +52,30 @@ classdef LoadERK < SSPTools.Steppers.ERK
             elseif strcmpi(p.Results.MethodName, 'kutta3')
                 A = [0 0 0;0.5 0 0;-1 2 0]; b = [1/6 2/3 6/3]; 
                 r = -Inf;
+            elseif strcmpi(p.Results.MethodName, 'merson45')
+                % Solving Ordinary Differential Equation I
+                % Hairer, pg167. table 4.1
+                A = [0 0 0 0 0;
+                    1/3 0 0 0 0;
+                    1/6 1/6 0 0 0;
+                    1/8 0 3/8 0 0;
+                    1/2 0 -3/2 2 0];
+                b = [1/6 0  0 2/3 1/6];
+                bhat = [1/10 0 3/10 2/5 1/5];
+            elseif strcmpi(p.Results.MethodName, 'zonneveld43')
+                % Solving Ordinary Differential Equation I
+                % Hairer, pg167. table 4.1
+                A = [0 0 0 0 0;
+                    1/2 0 0 0 0;
+                    0 1/2 0 0 0;
+                    0 0 1 0 0;
+                    5/32 7/32 12/32 -1/32 0];
+                b = [1/6 1/3 1/3 1/6 0];
+                bhat = [-1/2 7/3 7/3 13/6 -16/3];
             end
            
-            obj = obj@SSPTools.Steppers.ERK(varargin{:},'A',A,'b',b,'r',r);
+            obj = obj@SSPTools.Steppers.ERK(varargin{:},'A',A,'b',b,'r',r,...
+                'bhat',bhat);
             obj.name = p.Results.MethodName;
         end
     end

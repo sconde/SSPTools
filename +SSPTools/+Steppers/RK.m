@@ -5,7 +5,7 @@ classdef RK < handle
         dfdt;
         dfdx;
         ExplicitProblem;
-        A = []; b = []; c = []; alpha = []; s = []; 
+        A = []; b = []; c = []; alpha = []; s = [];
         r;
         p; % Nonlinear-Order
         plin; % Linear-Order
@@ -13,6 +13,8 @@ classdef RK < handle
         y0;
         t;
         isSSP;
+        bhat; % embedding weight vector
+        isEmbedded = false; % using adaptive step
     end
     
     properties (Access = protected)
@@ -36,6 +38,7 @@ classdef RK < handle
             addParameter(p, 'dfdt', []);
             addParameter(p, 'A', []);
             addParameter(p, 'b', []);
+            addParameter(p, 'bhat', []);
             addParameter(p, 'r', -Inf);
             addParameter(p, 'p', []);
             addParameter(p, 'plin', []);
@@ -45,7 +48,7 @@ classdef RK < handle
             addParameter(p, 'y0', []);
             addParameter(p, 'ODE', []);
             p.parse(varargin{:});
-                       
+            
             if isa(p.Results.dfdt, 'function_handle')
                 obj.dydt = p.Results.dfdt;
             end
@@ -63,7 +66,12 @@ classdef RK < handle
             obj.c = sum(obj.A,2);
             obj.s = numel(obj.b); %infer the number of stages from the length of b
             obj.p = p.Results.p;
-                        
+            
+            if ~isempty(p.Results.bhat)
+                obj.bhat = p.Results.bhat;
+                obj.isEmbedded = true;
+            end
+            
             % get the SSP coefficient of the method
             if ~isempty(p.Results.r) && ~isinf(p.Results.r)
                 obj.r = p.Results.r;
@@ -76,7 +84,7 @@ classdef RK < handle
                     obj.isSSP = false;
                 end
             end
-                        
+            
             if isempty(p.Results.plin)
                 obj.plin = obj.p;
             else
@@ -123,10 +131,14 @@ classdef RK < handle
         
         function butcherCoef(obj)
             %TODO: don't print the zeros
-            obj.printCoeff(obj.A, obj.b, obj.c);
+            if obj.isEmbedded
+                obj.printCoeff(obj.A, obj.b, obj.c, obj.bhat);
+            else
+                obj.printCoeff(obj.A, obj.b, obj.c);
+            end
         end
         
-        function [y] = takeStep(obj, dt) end
+        function [y, dt] = takeStep(obj, dt) end
         
         function resetInitCondition(obj)
             if isa(obj.y0, 'function_handle')
@@ -181,7 +193,7 @@ classdef RK < handle
                     rlo=r;
                 end
             end
-                        
+            
             if rhi==rmax % r>=rmax
                 error('Error: increase value of rmax in am_radius.m');
             else
@@ -194,13 +206,17 @@ classdef RK < handle
     
     methods ( Access = protected )
         
-        function printCoeff(obj, A, b, c)
+        function printCoeff(obj, A, b, c, varargin)
             %TODO: don't print the zeros
             del = repmat(' %5.4f ',1, obj.s);
             fprintf(1,['%5.4f |' del '\n'],[c A]');
             fprintf(1,'%s\n',repmat('-',1,8*(obj.s+1)));
             fprintf(1,'%6s |',repmat(' ',1,5));
             fprintf(1,[del '\n'], b);
+            if ~isempty(varargin) % method is embedded
+                fprintf(1,'%6s |',repmat(' ',1,5));
+                fprintf(1,[del '\n'], varargin{1});
+            end
         end
         
         function obj = setL(obj)
