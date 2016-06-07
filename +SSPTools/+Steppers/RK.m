@@ -5,7 +5,7 @@ classdef RK < handle
         dfdt;
         dfdx;
         ExplicitProblem;
-        A = []; b = []; c = []; alpha = []; s = []; 
+        A = []; b = []; c = []; alpha = []; s = [];
         r;
         p; % Nonlinear-Order
         plin; % Linear-Order
@@ -13,6 +13,9 @@ classdef RK < handle
         y0;
         t;
         isSSP;
+        bhat; % embedding weight vector
+        isEmbedded = false; % using adaptive step
+        variableStep = false;
     end
     
     properties (Access = protected)
@@ -25,6 +28,19 @@ classdef RK < handle
         x;
         u0;
         systemSize;
+        aTol; % absolute tolerance (used in Embedded-RK);
+        rTol; % relative tolerance (used in Embedded-RK)
+        incrFac = 1.2;
+        decrFac = 0.2;
+        facMax = 0.5;
+        facMin = 0.0001;
+        phat; % embedding order
+        minStepSize;
+        maxStepSize;
+        safetyFactor;
+        nextDt;
+        initDt;
+        dt_;
     end
     
     methods
@@ -36,16 +52,27 @@ classdef RK < handle
             addParameter(p, 'dfdt', []);
             addParameter(p, 'A', []);
             addParameter(p, 'b', []);
+            addParameter(p, 'bhat', []);
             addParameter(p, 'r', -Inf);
             addParameter(p, 'p', []);
+            addParameter(p, 'phat', []); % embedding order
             addParameter(p, 'plin', []);
             addParameter(p, 'alpha', []);
             addParameter(p, 't', 0.0);
             addParameter(p, 't0', 0);
             addParameter(p, 'y0', []);
             addParameter(p, 'ODE', []);
+            addParameter(p, 'RelTol', 1e-4);
+            addParameter(p, 'AbsTol', 1e-5);
+            addParameter(p, 'MinStepSize',1e-4);
+            addParameter(p, 'MaxStepSize',1e-1);
+            addParameter(p, 'StepSizeIncreaseFactor',1.2);
+            addParameter(p, 'StepSizeDecreaseFactor',0.5);
+            addParameter(p, 'SafetyFactor', 0.8);
+            addParameter(p, 'InitialStepSize',1e-4);
+            addParameter(p, 'VariableStepSize', false);
             p.parse(varargin{:});
-                       
+            
             if isa(p.Results.dfdt, 'function_handle')
                 obj.dydt = p.Results.dfdt;
             end
@@ -63,7 +90,25 @@ classdef RK < handle
             obj.c = sum(obj.A,2);
             obj.s = numel(obj.b); %infer the number of stages from the length of b
             obj.p = p.Results.p;
-                        
+            obj.variableStep = p.Results.VariableStepSize;
+            
+            % embedded-rk parameters
+            if ~isempty(p.Results.bhat) 
+                obj.bhat = p.Results.bhat;
+                obj.isEmbedded = true;
+                obj.phat = p.Results.phat;
+                obj.minStepSize = p.Results.MinStepSize;
+                obj.maxStepSize = p.Results.MaxStepSize;
+                obj.incrFac = p.Results.StepSizeIncreaseFactor;
+                obj.decrFac = p.Results.StepSizeDecreaseFactor;
+                obj.safetyFactor = p.Results.SafetyFactor;
+                obj.initDt = p.Results.InitialStepSize;
+                obj.dt_ = obj.initDt;
+                %obj.nextDt = -Inf;
+            end
+            
+            obj.isEmbedded = obj.isEmbedded && obj.variableStep;
+            
             % get the SSP coefficient of the method
             if ~isempty(p.Results.r) && ~isinf(p.Results.r)
                 obj.r = p.Results.r;
@@ -76,7 +121,7 @@ classdef RK < handle
                     obj.isSSP = false;
                 end
             end
-                        
+            
             if isempty(p.Results.plin)
                 obj.plin = obj.p;
             else
@@ -116,6 +161,9 @@ classdef RK < handle
                 obj.name = sprintf('RK(%d,%d)%d',obj.s, obj.p, obj.plin);
             end
             
+            obj.rTol = p.Results.RelTol;
+            obj.aTol = p.Results.AbsTol;
+            
         end % RK constructor
     end
     
@@ -123,10 +171,14 @@ classdef RK < handle
         
         function butcherCoef(obj)
             %TODO: don't print the zeros
-            obj.printCoeff(obj.A, obj.b, obj.c);
+            if obj.isEmbedded
+                obj.printCoeff(obj.A, obj.b, obj.c, obj.bhat);
+            else
+                obj.printCoeff(obj.A, obj.b, obj.c);
+            end
         end
         
-        function [y] = takeStep(obj, dt) end
+        function [y, dt] = takeStep(obj, dt) end
         
         function resetInitCondition(obj)
             if isa(obj.y0, 'function_handle')
@@ -135,12 +187,18 @@ classdef RK < handle
                 obj.u0 = obj.y0;
             end
             obj.t = 0.0;
+            %obj.nextDt = -Inf;
         end
         
-        function [t, y] = getState(obj)
+        function [t, y, nextDt] = getState(obj)
             y = obj.u0;
             t = obj.t;
-            
+            if (~obj.isEmbedded) || (t == 0)
+                nextDt = obj.dt_;
+            else
+                nextDt = obj.nextDt;
+            end
+                        
             if ~isempty(obj.dfdx) && (obj.dfdx.systemSize > 1)
                 y = reshape(y, obj.dfdx.nx, obj.dfdx.systemSize);
             end
@@ -181,7 +239,7 @@ classdef RK < handle
                     rlo=r;
                 end
             end
-                        
+            
             if rhi==rmax % r>=rmax
                 %error('Error: increase value of rmax in am_radius.m');
                 r = Inf;
@@ -196,13 +254,43 @@ classdef RK < handle
     
     methods ( Access = protected )
         
-        function printCoeff(obj, A, b, c)
+        function [y, t] = stepSizeControl(obj,dt,  y, yhat)
+            % Automatic Step Size Control
+            % Hairer. Solving ODE I. pg. 167
+            
+            lte = (y - yhat);
+            sc_i = obj.aTol + max(abs(obj.u0), abs(y))*obj.rTol;
+            %sc_i = obj.aTol + max(abs(yhat), abs(y))*obj.rTol;
+            %err = sqrt(sum((lte./sc_i).^2)/length(lte));
+            err = norm(abs(lte), Inf);
+            
+            if err < 1
+                % accept the solution
+                q = min(obj.p, obj.phat);
+                dt_op = dt*(1/err).^(1/q);
+                t = obj.t + dt;
+            else
+                y = obj.u0;
+                t = obj.t;
+            end
+            
+            dt_new = dt*min(obj.incrFac, max(obj.decrFac, ...
+                obj.safetyFactor*dt_op));
+            dt = dt_new;
+            obj.nextDt = dt;
+        end
+        
+        function printCoeff(obj, A, b, c, varargin)
             %TODO: don't print the zeros
             del = repmat(' %5.4f ',1, obj.s);
             fprintf(1,['%5.4f |' del '\n'],[c A]');
             fprintf(1,'%s\n',repmat('-',1,8*(obj.s+1)));
             fprintf(1,'%6s |',repmat(' ',1,5));
             fprintf(1,[del '\n'], b);
+            if ~isempty(varargin) % method is embedded
+                fprintf(1,'%6s |',repmat(' ',1,5));
+                fprintf(1,[del '\n'], varargin{1});
+            end
         end
         
         function obj = setL(obj)

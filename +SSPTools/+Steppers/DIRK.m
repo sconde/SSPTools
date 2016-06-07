@@ -75,11 +75,13 @@ classdef DIRK < SSPTools.Steppers.RK
     end
     
     methods %( Access = protected )
-
-
-        function [y] = takeStep(obj, dt)
-            
+        
+        
+        function [y, dt] = takeStep(obj, dt)
+            % function [y, dt] = takeStep(dt)
+            % returns the new solution (y) and time-step taken (dt)
             u0 = obj.u0;
+            obj.dt_ = dt;
             
             % first stage implicit solve
             obj.Y(:,1) = obj.solver(u0,dt, 1);
@@ -112,10 +114,14 @@ classdef DIRK < SSPTools.Steppers.RK
         end
         
         function y = nonlinearImplicitStage( obj, y, dt, i )
+            try
             epss = 1e-14;
             options = optimset('Display','off', 'TolFun',epss, 'TolX',epss);
             fzero = @(K) (y + dt*obj.A(i,i)*obj.L(dt + obj.c(i), K))  - K;
             [y, ~] = fsolve(@(Y) fzero(Y), y, options);
+            catch err
+                keyboard
+            end
         end
         
     end

@@ -86,7 +86,31 @@ classdef TestODEs < matlab.unittest.TestCase
                 'Within', AbsoluteTolerance(0.2)))
         end
         
-        function testVanderpolSDIRK22(testCase)
+        function testDalquitsFelhberg45(testCase)
+            import matlab.unittest.TestCase
+            import matlab.unittest.constraints.IsEqualTo
+            import matlab.unittest.constraints.AbsoluteTolerance
+            
+            Tfinal = 1;
+            
+            y0 = [2; -0.6654321];
+            
+            vdp = TestProblems.ODEs.Vanderpol();
+            
+            dudt = SSPTools.Steppers.LoadERK('MethodName','Felhberg45',...
+                'ODE', vdp, 'y0', y0);
+            
+            convergence_pro = Tests.Convergence('integrator', dudt,'Tfinal', Tfinal,...
+                'DT', Tfinal./(160:20:220));
+            
+            convergence_pro.run();
+            obsOrder = convergence_pro.getOrder('l2');
+            expectedOrder = 4;
+            testCase.assertThat(obsOrder, IsEqualTo(expectedOrder, ...
+                'Within', AbsoluteTolerance(0.2)))
+        end
+        
+          function testVanderpolSDIRK22(testCase)
             import matlab.unittest.TestCase
             import matlab.unittest.constraints.IsEqualTo
             import matlab.unittest.constraints.AbsoluteTolerance

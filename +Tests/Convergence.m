@@ -148,10 +148,10 @@ classdef Convergence < Tests.Test
             for dt = obj.DT
                 t_ = 0;
                 obj.dudt.resetInitCondition();
-                
                 while t_ < obj.Tfinal
+                    %[~, dt] = obj.dudt.takeStep(dt);
                     obj.dudt.takeStep(dt);
-                    [t_, ~] = obj.dudt.getState();
+                    [t_, ~, dt_] = obj.dudt.getState();
                     %t_ = t_ + dt;
                     dt = min(dt, obj.Tfinal - t_);
 %                     t_
