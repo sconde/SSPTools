@@ -183,7 +183,9 @@ classdef RK < handle
             end
                         
             if rhi==rmax % r>=rmax
-                error('Error: increase value of rmax in am_radius.m');
+                %error('Error: increase value of rmax in am_radius.m');
+                r = Inf;
+                %break
             else
                 r=rlo;
             end

@@ -95,7 +95,7 @@ classdef SSP < Tests.Test
                 ti = 0;
                 tv_violation = false;
                 TVMAX = [];
-                
+
                 for ti = 1:obj.Steps
                     obj.dudt.takeStep(dt);
                     [~, y] = obj.dudt.getState();
