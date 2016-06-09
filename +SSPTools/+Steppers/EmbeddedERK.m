@@ -2,10 +2,13 @@ classdef EmbeddedERK < SSPTools.Steppers.ERK
     
     properties
         bhat; % embedding weight vector
+    end
+    
+    properties ( Access = private)
         isEmbedded = false; % using adaptive step
         variableStep = false;
-        aTol; % absolute tolerance (used in Embedded-RK);
-        rTol; % relative tolerance (used in Embedded-RK)
+        aTol = 1e-5; % absolute tolerance (used in Embedded-RK);
+        rTol = 1e-4; % relative tolerance (used in Embedded-RK)
         incrFac = 1.2;
         decrFac = 0.2;
         facMax = 0.5;
@@ -18,15 +21,6 @@ classdef EmbeddedERK < SSPTools.Steppers.ERK
         lte_ = 0;
         rejectedDt_ = NaN;
         rejectedLastStep_ = false;
-    end
-    
-    properties ( Access = private)
-        isExplicit = true;
-        isMSRK = true; 	% Multi-Stage Runge-Kutta
-        isButcher = true; % starting with Butcher formulation
-        isLowStorage = false;  % need a way to determine is low-storage
-        n;
-        Y;
     end
     
     methods
@@ -53,29 +47,25 @@ classdef EmbeddedERK < SSPTools.Steppers.ERK
             p.parse(varargin{:});
             
             obj.variableStep = p.Results.VariableStepSize;
-            keyboard
                         
-            % embedded-rk parameters
-            if ~isempty(p.Results.bhat)
-                obj.bhat = p.Results.bhat;
-                obj.isEmbedded = true;
-                obj.phat = p.Results.phat;
-                obj.minStepSize = p.Results.MinStepSize;
-                obj.maxStepSize = p.Results.MaxStepSize;
-                obj.incrFac = p.Results.StepSizeIncreaseFactor;
-                obj.decrFac = p.Results.StepSizeDecreaseFactor;
-                obj.safetyFactor = p.Results.SafetyFactor;
-                obj.initDt = p.Results.InitialStepSize;
-                obj.dt_ = obj.initDt;
-                %obj.nextDt = -Inf;
-            end
+            obj.name = p.Results.name;
+            assert(~isempty(p.Results.bhat),'Need Bhat Vector');
             
+            obj.bhat = p.Results.bhat;
+            obj.isEmbedded = true;
+            obj.phat = p.Results.phat;
+            obj.minStepSize = p.Results.MinStepSize;
+            obj.maxStepSize = p.Results.MaxStepSize;
+            obj.incrFac = p.Results.StepSizeIncreaseFactor;
+            obj.decrFac = p.Results.StepSizeDecreaseFactor;
+            obj.safetyFactor = p.Results.SafetyFactor;
+            obj.initDt = p.Results.InitialStepSize;
+            obj.dt_ = obj.initDt;            
             obj.isEmbedded = obj.isEmbedded && obj.variableStep;
-            
             obj.rTol = p.Results.RelTol;
             obj.aTol = p.Results.AbsTol; % why is this give me the butcher matrix?
-            
-            keyboard
+         obj.aTol = 1e-5; % absolute tolerance (used in Embedded-RK);
+        obj.rTol = 1e-4;
             
         end % end constructor
         
@@ -95,14 +85,11 @@ classdef EmbeddedERK < SSPTools.Steppers.ERK
             for i = 2:obj.s
                 temp = u0;
                 for j = 1:i-1
-                    %keyboard
                     temp = temp + dt*obj.A(i,j)*obj.L(dt + obj.c(j), obj.Y(:,j));
-                    %keyboard
                 end
                 obj.Y(:,i) = temp;
             end
             
-            % combine
             y = u0;
             for i = 1:obj.s
                 y = y + dt*obj.b(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
@@ -194,7 +181,6 @@ classdef EmbeddedERK < SSPTools.Steppers.ERK
             % Automatic Step Size Control
             % Hairer. Solving ODE I. pg. 167
             
-            keyboard
             lte = (y - yhat);
             sc_i = obj.aTol + max(abs(obj.u0), abs(y))*obj.rTol;
             %sc_i = obj.aTol + max(abs(yhat), abs(y))*obj.rTol;
