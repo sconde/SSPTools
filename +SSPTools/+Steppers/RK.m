@@ -13,9 +13,6 @@ classdef RK < handle
         y0;
         t;
         isSSP;
-        bhat; % embedding weight vector
-        isEmbedded = false; % using adaptive step
-        variableStep = false;
     end
     
     properties (Access = protected)
@@ -28,18 +25,7 @@ classdef RK < handle
         x;
         u0;
         systemSize;
-        aTol; % absolute tolerance (used in Embedded-RK);
-        rTol; % relative tolerance (used in Embedded-RK)
-        incrFac = 1.2;
-        decrFac = 0.2;
-        facMax = 0.5;
-        facMin = 0.0001;
-        phat; % embedding order
-        minStepSize;
-        maxStepSize;
-        safetyFactor;
         nextDt;
-        initDt;
         dt_;
     end
     
@@ -52,25 +38,15 @@ classdef RK < handle
             addParameter(p, 'dfdt', []);
             addParameter(p, 'A', []);
             addParameter(p, 'b', []);
-            addParameter(p, 'bhat', []);
             addParameter(p, 'r', -Inf);
             addParameter(p, 'p', []);
-            addParameter(p, 'phat', []); % embedding order
             addParameter(p, 'plin', []);
             addParameter(p, 'alpha', []);
             addParameter(p, 't', 0.0);
             addParameter(p, 't0', 0);
             addParameter(p, 'y0', []);
             addParameter(p, 'ODE', []);
-            addParameter(p, 'RelTol', 1e-4);
-            addParameter(p, 'AbsTol', 1e-5);
-            addParameter(p, 'MinStepSize',1e-4);
-            addParameter(p, 'MaxStepSize',1e-1);
-            addParameter(p, 'StepSizeIncreaseFactor',1.2);
-            addParameter(p, 'StepSizeDecreaseFactor',0.5);
-            addParameter(p, 'SafetyFactor', 0.8);
-            addParameter(p, 'InitialStepSize',1e-4);
-            addParameter(p, 'VariableStepSize', false);
+
             p.parse(varargin{:});
             
             if isa(p.Results.dfdt, 'function_handle')
@@ -90,24 +66,7 @@ classdef RK < handle
             obj.c = sum(obj.A,2);
             obj.s = numel(obj.b); %infer the number of stages from the length of b
             obj.p = p.Results.p;
-            obj.variableStep = p.Results.VariableStepSize;
             
-            % embedded-rk parameters
-            if ~isempty(p.Results.bhat) 
-                obj.bhat = p.Results.bhat;
-                obj.isEmbedded = true;
-                obj.phat = p.Results.phat;
-                obj.minStepSize = p.Results.MinStepSize;
-                obj.maxStepSize = p.Results.MaxStepSize;
-                obj.incrFac = p.Results.StepSizeIncreaseFactor;
-                obj.decrFac = p.Results.StepSizeDecreaseFactor;
-                obj.safetyFactor = p.Results.SafetyFactor;
-                obj.initDt = p.Results.InitialStepSize;
-                obj.dt_ = obj.initDt;
-                %obj.nextDt = -Inf;
-            end
-            
-            obj.isEmbedded = obj.isEmbedded && obj.variableStep;
             
             % get the SSP coefficient of the method
             if ~isempty(p.Results.r) && ~isinf(p.Results.r)
@@ -161,9 +120,6 @@ classdef RK < handle
                 obj.name = sprintf('RK(%d,%d)%d',obj.s, obj.p, obj.plin);
             end
             
-            obj.rTol = p.Results.RelTol;
-            obj.aTol = p.Results.AbsTol;
-            
         end % RK constructor
     end
     
@@ -193,11 +149,8 @@ classdef RK < handle
         function [t, y, nextDt] = getState(obj)
             y = obj.u0;
             t = obj.t;
-            if (~obj.isEmbedded) || (t == 0)
-                nextDt = obj.dt_;
-            else
-                nextDt = obj.nextDt;
-            end
+            nextDt = obj.dt_;
+           
                         
             if ~isempty(obj.dfdx) && (obj.dfdx.systemSize > 1)
                 y = reshape(y, obj.dfdx.nx, obj.dfdx.systemSize);
@@ -253,32 +206,6 @@ classdef RK < handle
     
     
     methods ( Access = protected )
-        
-        function [y, t] = stepSizeControl(obj,dt,  y, yhat)
-            % Automatic Step Size Control
-            % Hairer. Solving ODE I. pg. 167
-            
-            lte = (y - yhat);
-            sc_i = obj.aTol + max(abs(obj.u0), abs(y))*obj.rTol;
-            %sc_i = obj.aTol + max(abs(yhat), abs(y))*obj.rTol;
-            %err = sqrt(sum((lte./sc_i).^2)/length(lte));
-            err = norm(abs(lte), Inf);
-            
-            if err < 1
-                % accept the solution
-                q = min(obj.p, obj.phat);
-                dt_op = dt*(1/err).^(1/q);
-                t = obj.t + dt;
-            else
-                y = obj.u0;
-                t = obj.t;
-            end
-            
-            dt_new = dt*min(obj.incrFac, max(obj.decrFac, ...
-                obj.safetyFactor*dt_op));
-            dt = dt_new;
-            obj.nextDt = dt;
-        end
         
         function printCoeff(obj, A, b, c, varargin)
             %TODO: don't print the zeros

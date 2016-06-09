@@ -73,21 +73,8 @@ classdef ERK < SSPTools.Steppers.RK
                 y = y + dt*obj.b(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
             end
             
-            % compute the embedding solution
-            if obj.isEmbedded
-                yhat = u0;
-                for i = 1:obj.s
-                    yhat = yhat + dt*obj.bhat(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
-                end
-                
-                [y, t] = obj.stepSizeControl(dt, y, yhat);
-            else
-                obj.nextDt = dt;
-                t = obj.t + dt;
-            end
-            
             obj.u0 = y;
-            obj.t  = t;
+            obj.t  = obj.t + dt;
         end
         
     end

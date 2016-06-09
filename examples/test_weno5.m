@@ -15,8 +15,8 @@ testing = 'ERK';
 
 y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
 
-%imp_pro = TestProblems.PDEs.Burgers();
-imp_pro = TestProblems.PDEs.LinearAdvection('a',1);
+imp_pro = TestProblems.PDEs.Burgers();
+%imp_pro = TestProblems.PDEs.LinearAdvection('a',1);
 
 dfdx = WenoCore.Weno5('N', N, 'domain', [-1, 1],...
     'kernel', 'WENO5', 'epsilon', 1e-16, 'p', 2,'Problem', imp_pro);
