@@ -115,7 +115,6 @@ classdef RK < handle
             else
                 obj.name = sprintf('RK(%d,%d)%d',obj.s, obj.p, obj.plin);
             end
-            
         end % RK constructor
     end
     
