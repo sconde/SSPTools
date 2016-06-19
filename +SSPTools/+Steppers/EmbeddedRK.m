@@ -13,19 +13,39 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
         decrFac = 0.2;
         facMax = 0.5;
         facMin = 0.0001;
+        safe = 0.9;
+        fac1 = 0.2;
+        fac2 = 10.0;
+        beta_ = 0.04;
+        expo1;%= 0.2 - beta_ * 0.75;
+        facc1;% = 1.0 / fac1 ;
+        facc2;%% = 1.0 / fac2 ;
+        hmax;
+        facold = 1.0E-4;
         phat; % embedding order
         minStepSize;
         maxStepSize;
         safetyFactor;
-        nextDt;
+        %nextDt;
         initDt;
-        dt_ = NaN;
+        %dt_ = NaN;
         t_ = 0;
         badDt_;
         lte_ = 0;
         rejectedDt_ = NaN;
         rejectedLastStep_ = false;
         preditedStepSize_ = NaN; % need to fix this
+        fac11;
+        last = 0;
+        naccpt = 0;
+        nrejct = 0;
+        reject = 0;
+        oldT = 0;
+        tFinal;
+        dtMax;
+        posneg;
+        nfcn = 0;
+        nstep = 0;
     end
     
     methods
@@ -37,8 +57,8 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             addParameter(inpPar,'name','Embedded-ERK');
             addParameter(inpPar, 'phat', []); % embedding order
             addParameter(inpPar, 'bhat', []);
-            addParameter(inpPar, 'RelTol', 1e-4);
-            addParameter(inpPar, 'TolAbs', 1e-5);
+            addParameter(inpPar, 'RelTol', 1e-7);
+            addParameter(inpPar, 'TolAbs', 1e-7);
             addParameter(inpPar, 'MinStepSize',1e-4);
             addParameter(inpPar, 'MaxStepSize',1e-1);
             addParameter(inpPar, 'StepSizeIncreaseFactor',1.5);
@@ -46,13 +66,14 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             addParameter(inpPar, 'SafetyFactor', 0.8);
             addParameter(inpPar, 'InitialStepSize',1e-4);
             addParameter(inpPar, 'VariableStepSize', false);
+            addParameter(inpPar, 'Tfinal', 1);
             
             inpPar.parse(varargin{:});
             
             obj.bhat = inpPar.Results.bhat;
             obj.phat = inpPar.Results.phat;
-            obj.absTol = inpPar.Results.TolAbs;
-            obj.relTol = inpPar.Results.RelTol;
+            obj.absTol = 1e-7;%inpPar.Results.TolAbs;
+            obj.relTol = 1e-7;%inpPar.Results.RelTol;
             obj.isVariableStep = inpPar.Results.VariableStepSize;
             obj.minStepSize = inpPar.Results.MinStepSize;
             obj.maxStepSize = inpPar.Results.MaxStepSize;
@@ -60,37 +81,25 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             obj.incrFac = inpPar.Results.StepSizeIncreaseFactor;
             obj.decrFac = inpPar.Results.StepSizeDecreaseFactor;
             obj.name = inpPar.Results.name;
+            
+            obj.expo1 = 0.2 - obj.beta_ * 0.75;
+            obj.facc1 = 1.0 / obj.fac1 ;
+            obj.facc2 = 1.0 / obj.fac2 ;
+            obj.tFinal = inpPar.Results.Tfinal;
+            
+            obj.dtMax = obj.tFinal - obj.t;
+            
+            % define the posneg variable
+            if obj.dtMax < 0
+                obj.posneg = -1;
+            else
+                obj.posneg = 1;
+            end
         end
         
         function [y] = takeStep(obj, dt)
-            u0 = obj.u0;
-            obj.Y(:,1) = u0;
-            
-            % intermediate stage value
-            for i = 2:obj.s
-                temp = u0;
-                for j = 1:i-1
-                    %keyboard
-                    temp = temp + dt*obj.A(i,j)*obj.L(dt + obj.c(j), obj.Y(:,j));
-                    %keyboard
-                end
-                obj.Y(:,i) = temp;
-            end
-            
-            % combine
-            y = u0;
-            for i = 1:obj.s
-                y = y + dt*obj.b(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
-            end
-            
-            % get the embedding
-            yhat = u0;
-            for i = 1:obj.s
-                yhat = yhat + dt*obj.bhat(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
-            end
-            
-            nxDt = stepSizeControl(obj, dt,  y, yhat);
-            obj.preditedStepSize_ = nxDt;
+           % not implemented
+           error('Not implemented');
         end
         
         
@@ -129,16 +138,28 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             end
             
             dt = min(100*h0, h1);
-            
+            obj.nextDt = dt;
+            obj.nfcn = 2;
         end
         
         function [t, y, dt, err, bad_dt] = getState(obj)
-            y = obj.u0;
-            t = obj.t_;
-            err = obj.lte_;
-            dt = obj.preditedStepSize_;
-            bad_dt = obj.badDt_;
             
+            y = obj.u0;
+            t = obj.t;
+            err = norm(obj.lte_, Inf);
+            
+            if isempty(obj.nextDt) && isempty(obj.dt_)
+                obj.startingStepSize();
+            end
+            
+            dt = obj.nextDt;
+                     
+            if (obj.naccpt && obj.reject)
+               bad_dt = obj.dt_;
+            else
+                bad_dt = NaN;
+            end
+                        
             if ~isempty(obj.dfdx) && (obj.dfdx.systemSize > 1)
                 y = reshape(y, obj.dfdx.nx, obj.dfdx.systemSize);
             end
@@ -146,53 +167,79 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
     end
     
     methods ( Access = protected )
+
+        function sk = sci_fun(obj, y, yhat)
+            sk = obj.absTol + obj.relTol * max(abs(obj.u0), abs(yhat));
+        end
         
-        function nextDt = stepSizeControl(obj, dt,  y, yhat)
+        function [y, t] = stepSizeControl(obj, dt,  y, yhat)
             % Automatic Step Size Control
             % Hairer. Solving ODE I. pg. 167
             
+           
+            h = dt; 
+            lte = abs(y - yhat);
+            obj.lte_ = norm(lte, Inf);
             
-            lte = (y - yhat);
-            lte = norm(lte, Inf);
-            obj.lte_ = lte;
-            sci = obj.absTol + max(abs(obj.u0), abs(y))*obj.relTol;
-            err = sqrt(sum((lte./sci).^2)/length(y));
-            err = lte;
-            
-            %err = norm(abs(lte), Inf);
-            q = min(obj.p, obj.phat);
-            
-            if obj.rejectedLastStep_
-                fac = 1;
-            else
-                %fac = obj.safetyFactor;
-                %fac = (0.25)^(1/(q+1));    % 119 accepted + 14 rejected
-                %fac = 0.9;                 % 103 accepted + 75 rejected
-                %fac = 0.8;                 % 110 accepted + 26 rejected
-                fac = (0.38)^(1/(q+1));     % 110 accepted + 17 rejected
-            end
+            sk = obj.sci_fun(y, yhat);
+            err = sum((lte./sk).^2);
+            err = sqrt(err /length(y));
+                        
+            %/* computation of hnew */
+            obj.fac11 = err.^(obj.expo1);
+
+            % /* Lund-stabilization */
+            fac = obj.fac11/(obj.facold.^(obj.beta_));
+
+            % /* we require fac1 <= hnew/h <= fac2 */
+            fac = max(obj.facc2, min(obj.facc1, fac/obj.safe));
+            hnew = h / fac;
             
             if abs(err) <= 1 % accept the solution
-                obj.badDt_ = NaN;
-                obj.rejectedLastStep_ = false;
-                obj.acceptedStep = obj.acceptedStep + 1;
-                obj.t_ = obj.t_ + dt;
-                h_new = dt*min(obj.incrFac, fac*(1/err)^(1/(q+1)));
-                h_new = dt*obj.incrFac;
-                obj.u0 = y; % accept the solution
+                % accept the step
+                obj.facold = max(err, 1.0E-4);
+                obj.naccpt = obj.naccpt + 1;
+                obj.oldT = obj.t;
+                t = obj.t + dt;
+
+                % /* normal exit */
+                if (obj.last)
+                    obj.nextDt = hnew;
+                    %obj.t = t;
+                    idid = 1;
+                    keyboard
+                   %break;
+                end
+
+                if (abs(hnew) > obj.dtMax)
+                    hnew = obj.posneg * obj.dtMax;
+                end
+                
+                if (obj.reject)
+                    hnew = obj.posneg * min(abs(hnew), abs(h));
+                end
+        
+                obj.reject = 0;
+                
             else % reject the solution
-                obj.badDt_ = dt;
-                obj.t_ = obj.t_;
-                obj.rejectedLastStep_ = true;
-                %h_new = dt*min(obj.incrFac, max(fac*(1/err)^(1/(q+1)),1e-6));
-                h_new = dt*min(obj.incrFac, fac*(1/err)^(1/(q)));
-                h_new = dt*obj.decrFac;
-                obj.rejectedStep = obj.rejectedStep +1;
-                obj.u0;
-            end
+            % reject
             
-            nextDt = h_new;
+                hnew = h/(min(obj.facc1, obj.fac11/obj.safe));
+                obj.reject = 1;
+                y = obj.u0;
+                t = obj.t;
+                
+                if (obj.naccpt >= 1)
+                    obj.nrejct = obj.nrejct + 1;
+                end
+                obj.last = 0;
+                obj.reject = 1;
+                obj.nextDt = hnew;
+             end
+            
             obj.lte_ = lte;
+            obj.nextDt = hnew;
+            
         end
     end
 end

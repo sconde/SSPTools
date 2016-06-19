@@ -24,14 +24,18 @@ t = 0;
 %rk = '~/Documents/embedded-rk/butcher-optimization/Method/ERK/P4/Plin4/PhatLn4/S5/method_typeG_r_1.5061659316780_acc_-16.mat';
 %rk = load(rk);
 
-y0 = [1.5; 3];
-
-vdp = TestProblems.ODEs.Brusselator();
+y0(1) = 0.994;                                                                                                                               
+y0(2) = 0.0;                                                                                                                                 
+y0(3) = 0.0;                                                                                                                                 
+y0(4) = -2.00158510637908252240537862224;
+xend = 17.0652165601579625588917206249;   
+Tfinal = xend;
+aren = TestProblems.ODEs.Aren();
 
 
 dudt = SSPTools.Steppers.LoadEmbeddedERK('MethodName', 'DormandPrince54',...
-    'ODE', vdp, 'y0', y0, 'RelTol', 1e-7, 'AbsTol', 1e-7,...
-    'InitialStepSize', [],'VariableStepSize', true,'MaxStepSize', 1e1, 'Tfinal', Tfinal);
+    'ODE', aren, 'y0', y0, 'RelTol', 1e-7, 'AbsTol', 1e-7,...
+    'InitialStepSize', [],'VariableStepSize', true,'MaxStepSize', 1e1, 'Tfinal', xend);
 %get the estimated starting step size
 
 T = []; DT = []; Y = []; ERR = []; badDT = [];
@@ -56,7 +60,6 @@ T = T(2:end); DT = DT(2:end); ERR = ERR(2:end); badDT = badDT(2:end);
 
 goodSol = isnan(badDT);
 badDT = badDT(~goodSol);
-BADERR = ERR(~goodSol);
 
 
 [ismem, ind] = ismember(badDT,DT);
@@ -91,7 +94,6 @@ title('Error')
 semilogy(T, ERR,'-.k')
 hold on
 semilogy(T, 1e-4*ones(size(T)),'--')
-%semilogy(badT, BADERR, 'sr');
 ylim([0 5]);
 
 fprintf(1, '%d Function-Evaluation, %d Steps( %d accepted + %d rejected)\n',...
