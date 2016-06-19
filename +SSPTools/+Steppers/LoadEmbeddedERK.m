@@ -57,18 +57,22 @@ classdef LoadEmbeddedERK < SSPTools.Steppers.EmbeddedERK
             elseif strcmpi(inpPar.Results.MethodName, 'dormandprince54')
                 %TODO: confirm order of accuracy
                 % https://en.wikipedia.org/wiki/Dormand-Prince_method
-                A = zeros(7);
-                A(2,1) = 1/5;
-                A(3,1) = 3/40; A(3,2) = 9/40;
-                A(4,1) = 44/35; A(4,2) = -56/15; A(4,3) = 32/9;
-                A(5,1) = 19372/6561; A(5,2) = -25360/2187; A(5,3) = 64448/6561;
-                A(5,4) = -212/729;
-                A(6,1) = 9017/3168; A(6,2) = -355/33; A(6,3) = 46732/5247;
-                A(6,4) = 49/176; A(6,5) = -5103/18656;
-                A(7,1) = 35/384; A(7,2) = 0; A(7,3) = 500/1113; A(7,4) = 125/192;
-                A(7,5) = -2187/6784; A(7,6) = 11/84;
-                b = A(7,:);
-                bhat = [5179/57600 0 7571/16695 393/640 -92097/339200 187/2100 1/40];
+                rk = load('dormandprince54.mat');
+                A = rk.A; b = rk.b(:); bhat = rk.bhat(:); p = 4; phat = 4;
+            elseif strcmpi(inpPar.Results.MethodName, '38rule43')
+                % 3/8-rule fourth-order method
+                % equipped it with the embedded formula (4.9) of order 3
+                % Solving Ordinary Differential Equation I
+                % Hairer. pg. 170 (Fig. 4.1)
+                p = 4; phat = 3;
+                A = zeros(5);
+                A(2,1) = 1/3;
+                A(3,1) = -1/3; A(3,2) = 1;
+                A(4,1) = 1; A(4,2) = -1; A(4,3) = 1;
+                A(5,1) = 1/8; A(5,2) = 3/8; A(5,3) = 3/8; A(5,4) = 1/8;
+                b = A(5,:);
+                bhat = [1/12 1/2 1/4 0 1/6];
+>>>>>>> Stashed changes
             end
            
             obj = obj@SSPTools.Steppers.EmbeddedERK(varargin{:},'A',A,'b',b,'r',r,...
