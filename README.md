@@ -5,6 +5,8 @@ approximate solutions to conservative hyperbolic partial differential equations.
 
 More information about SSP methods and current researh projects can be found at the http://www.sspsite.org
 
+Please check out [SSP_Tools](https://github.com/DanielHiggs/SSP_Tools),the first version written by Dan Higgs.
+
 ### What is this repository for? ###
 
 * Quick summary

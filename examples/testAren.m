@@ -12,20 +12,30 @@ dt = 0.01;
 Tfinal = 20;
 t = 0;
 
+% method = '38Rule43';                % 106 accepted + 20 rejected
  method = 'DormandPrince54';
+% method = 'Felhberg45';                 % 62 accepted + 39 rejected
+% method = 'Zonneveld43';
+% method = 'Merson45';                   % 77 accepted + 20 rejected
+% method = 'HeunEuler';                  % 1632 accepted + 0 rejected
+% method = 'BogackiShampine';            % 166 accepted + 36 rejected
+%method = 'SSPEmbedded';
 
 %rk = '~/Documents/embedded-rk/butcher-optimization/Method/ERK/P4/Plin4/PhatLn4/S5/method_typeG_r_1.5061659316780_acc_-16.mat';
 %rk = load(rk);
 
-y0 = [1.5; 3];
-
-vdp = TestProblems.ODEs.Brusselator();
-
+y0(1) = 0.994;                                                                                                                               
+y0(2) = 0.0;                                                                                                                                 
+y0(3) = 0.0;                                                                                                                                 
+y0(4) = -2.00158510637908252240537862224;
+xend = 17.0652165601579625588917206249;   
+Tfinal = xend;
+aren = TestProblems.ODEs.Aren();
 
 
 dudt = SSPTools.Steppers.LoadEmbeddedERK('MethodName', 'DormandPrince54',...
-    'ODE', vdp, 'y0', y0, 'RelTol', 1e-7, 'AbsTol', 1e-7,...
-    'InitialStepSize', [],'VariableStepSize', true,'MaxStepSize', 1e1, 'Tfinal', Tfinal);
+    'ODE', aren, 'y0', y0, 'RelTol', 1e-7, 'AbsTol', 1e-7,...
+    'InitialStepSize', [],'VariableStepSize', true,'MaxStepSize', 1e1, 'Tfinal', xend);
 %get the estimated starting step size
 
 T = []; DT = []; Y = []; ERR = []; badDT = [];
@@ -37,6 +47,7 @@ while t < Tfinal
     
     dudt.takeStep(dt);
     [t, y, nextDt, err, bad_dt] = dudt.getState();
+    
     dt = min(nextDt, Tfinal - t);
     T = [T; t]; DT = [DT; dt]; Y = [Y y]; ERR = [ERR; err]; badDT = [badDT; bad_dt];
 end
@@ -49,7 +60,7 @@ T = T(2:end); DT = DT(2:end); ERR = ERR(2:end); badDT = badDT(2:end);
 
 goodSol = isnan(badDT);
 badDT = badDT(~goodSol);
-BADERR = ERR(~goodSol);
+
 
 [ismem, ind] = ismember(badDT,DT);
 DT(ind) = [];
@@ -83,7 +94,6 @@ title('Error')
 semilogy(T, ERR,'-.k')
 hold on
 semilogy(T, 1e-4*ones(size(T)),'--')
-%semilogy(badT, BADERR, 'sr');
 ylim([0 5]);
 
 fprintf(1, '%d Function-Evaluation, %d Steps( %d accepted + %d rejected)\n',...

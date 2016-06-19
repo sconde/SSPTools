@@ -14,9 +14,9 @@ Tfinal = 2;
 t = 0;
 f = @(u) u;
 
-%testing = 'ERK';
+testing = 'ERK';
 %testing = 'DIRK';
-testing = 'IMEXRK';
+%testing = 'IMEXRK';
 
 y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
 y0 = @(x) sin(x);
@@ -25,7 +25,7 @@ imp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
 imp_pro = TestProblems.PDEs.Burgers();
 exp_pro = TestProblems.PDEs.BuckleyLeverett('y0', y0);
 %dfdx = SSPTools.Discretizers.FiniteDifference('N', N, 'domain', [-1, 1],'bc','periodic');
-dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N);
+%dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, 'N', N);
 
 if strcmpi(testing, 'ERK')
     

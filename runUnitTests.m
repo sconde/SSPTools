@@ -6,6 +6,7 @@ cellOfTest = {UnitTests.TestOrder; ...  % convergence tests
     UnitTests.TestSSPTools; ...         % run-time Tests
     UnitTests.TestMesh; ...             % Mesh1D Tests
     UnitTests.TestDG;                   % DG Runtime
+    %UnitTests.TestEmbeddedMethods;       % Embedded-RK
     };
 
 resultTable = [];
