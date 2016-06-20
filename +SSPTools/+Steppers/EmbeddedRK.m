@@ -1,34 +1,33 @@
 classdef EmbeddedRK <  SSPTools.Steppers.ERK
     
-    properties %(Access = private)
-        
+    properties (Access = protected)%(Access = private)   
         bhat; % embedding weight vector
         isEmbedded = true; % using adaptive step
         isVariableStep = false;
         rejectedStep = 0;
         acceptedStep = 0;
-        absTol = 1e-5; % absolute tolerance (used in Embedded-RK);
-        relTol = 1.e-4; % relative tolerance (used in Embedded-RK)
-        incrFac = 1.2;
-        decrFac = 0.2;
-        facMax = 0.5;
-        facMin = 0.0001;
-        safe = 0.9;
+        absTol;% absolute tolerance (used in Embedded-RK);
+        relTol;% relative tolerance (used in Embedded-RK)
+        incrFac;
+        decrFac;
+        facMax;
+        facMin;
+        safe;
         fac1 = 0.2;
         fac2 = 10.0;
-        beta_ = 0.04;
-        expo1;%= 0.2 - beta_ * 0.75;
-        facc1;% = 1.0 / fac1 ;
-        facc2;%% = 1.0 / fac2 ;
-        hmax;
+        beta_;
+        expo1;
+        facc1;
+        facc2;
         facold = 1.0E-4;
         phat; % embedding order
         minStepSize;
         maxStepSize;
         safetyFactor;
-        %nextDt;
+    end
+    
+    properties(Access = protected)
         initDt;
-        %dt_ = NaN;
         t_ = 0;
         badDt_;
         lte_ = 0;
@@ -57,23 +56,25 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             addParameter(inpPar,'name','Embedded-ERK');
             addParameter(inpPar, 'phat', []); % embedding order
             addParameter(inpPar, 'bhat', []);
-            addParameter(inpPar, 'RelTol', 1e-7);
-            addParameter(inpPar, 'TolAbs', 1e-7);
+            addParameter(inpPar, 'RelativeTolerance', 1e-7);
+            addParameter(inpPar, 'AbsoluteTolerance', 1e-7);
             addParameter(inpPar, 'MinStepSize',1e-4);
-            addParameter(inpPar, 'MaxStepSize',1e-1);
+            addParameter(inpPar, 'MaxStepSize',[]);
             addParameter(inpPar, 'StepSizeIncreaseFactor',1.5);
             addParameter(inpPar, 'StepSizeDecreaseFactor',0.5);
             addParameter(inpPar, 'SafetyFactor', 0.8);
             addParameter(inpPar, 'InitialStepSize',1e-4);
             addParameter(inpPar, 'VariableStepSize', false);
             addParameter(inpPar, 'Tfinal', 1);
-            
+            addParameter(inpPar, 'Beta', 0.04);
+            addParameter(inpPar, 'Safety', 0.9);
+           
             inpPar.parse(varargin{:});
             
             obj.bhat = inpPar.Results.bhat;
             obj.phat = inpPar.Results.phat;
-            obj.absTol = 1e-7;%inpPar.Results.TolAbs;
-            obj.relTol = 1e-7;%inpPar.Results.RelTol;
+            obj.absTol = inpPar.Results.AbsoluteTolerance;
+            obj.relTol = inpPar.Results.RelativeTolerance;
             obj.isVariableStep = inpPar.Results.VariableStepSize;
             obj.minStepSize = inpPar.Results.MinStepSize;
             obj.maxStepSize = inpPar.Results.MaxStepSize;
@@ -81,13 +82,20 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             obj.incrFac = inpPar.Results.StepSizeIncreaseFactor;
             obj.decrFac = inpPar.Results.StepSizeDecreaseFactor;
             obj.name = inpPar.Results.name;
+            obj.beta_ = inpPar.Results.Beta;
+            obj.safe = inpPar.Results.Safety;
             
             obj.expo1 = 0.2 - obj.beta_ * 0.75;
             obj.facc1 = 1.0 / obj.fac1 ;
             obj.facc2 = 1.0 / obj.fac2 ;
             obj.tFinal = inpPar.Results.Tfinal;
             
-            obj.dtMax = obj.tFinal - obj.t;
+            % set maximum step size allow
+            if isempty(obj.maxStepSize)
+                obj.dtMax = obj.tFinal - obj.t;
+            else
+                obj.dtMax = obj.maxStepSize;
+            end
             
             % define the posneg variable
             if obj.dtMax < 0
@@ -95,13 +103,19 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             else
                 obj.posneg = 1;
             end
+            
         end
         
         function [y] = takeStep(obj, dt)
-           % not implemented
-           error('Not implemented');
+            % not implemented
+            error('Not implemented');
         end
         
+        
+        function summary(obj)
+            fprintf(1, 'rtol= %12.5e, atol= %12.5e, fcn = %d, step = %d, accpt = %d, reject = %d\n',...
+                obj.relTol, obj.absTol, obj.nfcn, obj.nstep, obj.naccpt, obj.nrejct);
+        end
         
         function dt = startingStepSize(obj)
             % Solving Ordinary Differential Equation I - nonstiff
@@ -153,13 +167,13 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             end
             
             dt = obj.nextDt;
-                     
+            
             if (obj.naccpt && obj.reject)
-               bad_dt = obj.dt_;
+                bad_dt = obj.dt_;
             else
                 bad_dt = NaN;
             end
-                        
+            
             if ~isempty(obj.dfdx) && (obj.dfdx.systemSize > 1)
                 y = reshape(y, obj.dfdx.nx, obj.dfdx.systemSize);
             end
@@ -167,7 +181,7 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
     end
     
     methods ( Access = protected )
-
+        
         function sk = sci_fun(obj, y, yhat)
             sk = obj.absTol + obj.relTol * max(abs(obj.u0), abs(yhat));
         end
@@ -176,21 +190,21 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             % Automatic Step Size Control
             % Hairer. Solving ODE I. pg. 167
             
-           
-            h = dt; 
+            
+            h = dt;
             lte = abs(y - yhat);
             obj.lte_ = norm(lte, Inf);
             
             sk = obj.sci_fun(y, yhat);
             err = sum((lte./sk).^2);
             err = sqrt(err /length(y));
-                        
+            
             %/* computation of hnew */
             obj.fac11 = err.^(obj.expo1);
-
+            
             % /* Lund-stabilization */
             fac = obj.fac11/(obj.facold.^(obj.beta_));
-
+            
             % /* we require fac1 <= hnew/h <= fac2 */
             fac = max(obj.facc2, min(obj.facc1, fac/obj.safe));
             hnew = h / fac;
@@ -201,16 +215,16 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
                 obj.naccpt = obj.naccpt + 1;
                 obj.oldT = obj.t;
                 t = obj.t + dt;
-
+                
                 % /* normal exit */
                 if (obj.last)
                     obj.nextDt = hnew;
                     %obj.t = t;
                     idid = 1;
                     keyboard
-                   %break;
+                    %break;
                 end
-
+                
                 if (abs(hnew) > obj.dtMax)
                     hnew = obj.posneg * obj.dtMax;
                 end
@@ -218,12 +232,12 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
                 if (obj.reject)
                     hnew = obj.posneg * min(abs(hnew), abs(h));
                 end
-        
+                
                 obj.reject = 0;
                 
             else % reject the solution
-            % reject
-            
+                % reject
+                
                 hnew = h/(min(obj.facc1, obj.fac11/obj.safe));
                 obj.reject = 1;
                 y = obj.u0;
@@ -235,7 +249,7 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
                 obj.last = 0;
                 obj.reject = 1;
                 obj.nextDt = hnew;
-             end
+            end
             
             obj.lte_ = lte;
             obj.nextDt = hnew;
