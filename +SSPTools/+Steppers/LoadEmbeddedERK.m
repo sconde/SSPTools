@@ -5,7 +5,6 @@ classdef LoadEmbeddedERK < SSPTools.Steppers.EmbeddedERK
     end
     
     properties (Access = private)
-        gam;
     end
     
     methods
@@ -13,7 +12,9 @@ classdef LoadEmbeddedERK < SSPTools.Steppers.EmbeddedERK
             
             inpPar = inputParser;
             inpPar.KeepUnmatched = true;
+            
             addParameter(inpPar,'MethodName','Merson45');
+            
             inpPar.parse(varargin{:});
             
             
@@ -132,8 +133,8 @@ classdef LoadEmbeddedERK < SSPTools.Steppers.EmbeddedERK
                 bhat = [1/12 1/2 1/4 0 1/6];
             end
             
-            obj = obj@SSPTools.Steppers.EmbeddedERK(varargin{:},'A',A,'b',b,'r',r,...
-                'bhat',bhat, 'p', p, 'phat', phat);
+            obj = obj@SSPTools.Steppers.EmbeddedERK('A',A,'b',b,'r',r,...
+                'bhat',bhat, 'p', p, 'phat', phat, varargin{:});
             obj.name = inpPar.Results.MethodName;
         end
     end

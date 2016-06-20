@@ -13,8 +13,8 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
         facMax;
         facMin;
         safe;
-        fac1 = 0.2;
-        fac2 = 10.0;
+        fac1 = 0.2; % facMin
+        fac2 = 10.0; % facMax;
         beta_;
         expo1;
         facc1;
