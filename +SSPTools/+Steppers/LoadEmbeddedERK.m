@@ -32,7 +32,7 @@ classdef LoadEmbeddedERK < SSPTools.Steppers.EmbeddedERK
                     1/2 0 -3/2 2 0];
                 b = [1/6 0  0 2/3 1/6];
                 bhat = [1/10 0 3/10 2/5 1/5];
-            elseif strcmpi(inpPar.Results.MethodName, 'zonneveld43')
+            elseif strcmpi(inpPar.Results.MethodName, 'zonneveld43') % Really slow
                 % Solving Ordinary Differential Equation I
                 % Hairer, pg167. table 4.1
                 p = 4; phat = 3;

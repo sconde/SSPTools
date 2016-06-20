@@ -12,21 +12,32 @@ dt = 0.01;
 Tfinal = 20;
 t = 0;
 
- method = 'DormandPrince54';
+%method = 'DormandPrince54';
+%method = 'Merson45';
+%method = 'Zonneveld43';
+%method = 'Felhberg45';
+method = '38rule43';
+%method = 'SSPEmbeddedRK';
 
-%rk = '~/Documents/embedded-rk/butcher-optimization/Method/ERK/P4/Plin4/PhatLn4/S5/method_typeG_r_1.5061659316780_acc_-16.mat';
-%rk = load(rk);
+rk_method = '~/Dropbox/embedded-rk/butcher-optimization/Method/ERK/P4/Plin5/PhatLn5/S6/method_typeG_r_0.8150774145257_acc_-16.mat';
+rk = load(rk_method);
 
 y0 = [1.5; 3];
 
 vdp = TestProblems.ODEs.Brusselator();
 
 
-
-dudt = SSPTools.Steppers.LoadEmbeddedERK('MethodName', 'DormandPrince54',...
-    'ODE', vdp, 'y0', y0, 'RelTol', 1e-7, 'AbsTol', 1e-7,...
-    'InitialStepSize', [],'VariableStepSize', true,'MaxStepSize', 1e1, 'Tfinal', Tfinal);
-%get the estimated starting step size
+if strcmpi(method, 'sspembeddedrk')
+    dudt = SSPTools.Steppers.EmbeddedERK('A', rk.A, 'b', rk.b, 'bhat', rk.bhat, 'p', rk.p, 'phat', rk.p-1,...
+        'ODE', vdp, 'y0', y0, 'RelativeTolerance', 1e-4, 'AbsoluteTolerance', 1e-4,...
+        'InitialStepSize', [],'VariableStepSize', true, 'Tfinal', Tfinal,...
+        'FacMax',5);
+else
+    dudt = SSPTools.Steppers.LoadEmbeddedERK('MethodName',method,...
+        'ODE', vdp, 'y0', y0, 'RelativeTolerance', 1e-4, 'AbsoluteTolerance', 1e-4,...
+        'InitialStepSize', [],'VariableStepSize', true, 'Tfinal', Tfinal,...
+        'FacMax',5);
+end
 
 T = []; DT = []; Y = []; ERR = []; badDT = [];
 
@@ -41,8 +52,7 @@ while t < Tfinal
     T = [T; t]; DT = [DT; dt]; Y = [Y y]; ERR = [ERR; err]; badDT = [badDT; bad_dt];
 end
 
-fprintf(1, 'rtol= %12.5e, fcn = %d, step = %d, accpt = %d, reject = %d\n',...
-    dudt.absTol, dudt.nfcn, dudt.nstep, dudt.naccpt, dudt.nrejct);
+dudt.summary();
 
 T = T(2:end); DT = DT(2:end); ERR = ERR(2:end); badDT = badDT(2:end);
 % remove all the rejected Step and Solution
@@ -85,7 +95,3 @@ hold on
 semilogy(T, 1e-4*ones(size(T)),'--')
 %semilogy(badT, BADERR, 'sr');
 ylim([0 5]);
-
-fprintf(1, '%d Function-Evaluation, %d Steps( %d accepted + %d rejected)\n',...
-    dudt.nfcn, dudt.nstep, dudt.naccpt, dudt.nrejct);
-%fprintf(1, '%d rejected\n', dudt.rejectedStep);

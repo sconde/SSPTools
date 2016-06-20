@@ -13,8 +13,8 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
         facMax;
         facMin;
         safe;
-        fac1 = 0.2; % facMin
-        fac2 = 10.0; % facMax;
+        fac1;% = 0.2; % facMin
+        fac2;% = 10.0; % facMax;
         beta_;
         expo1;
         facc1;
@@ -62,6 +62,8 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             addParameter(inpPar, 'MaxStepSize',[]);
             addParameter(inpPar, 'StepSizeIncreaseFactor',1.5);
             addParameter(inpPar, 'StepSizeDecreaseFactor',0.5);
+            addParameter(inpPar, 'FacMax',10);
+            addParameter(inpPar, 'FacMin',0.2);
             addParameter(inpPar, 'SafetyFactor', 0.8);
             addParameter(inpPar, 'InitialStepSize',1e-4);
             addParameter(inpPar, 'VariableStepSize', false);
@@ -84,7 +86,9 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             obj.name = inpPar.Results.name;
             obj.beta_ = inpPar.Results.Beta;
             obj.safe = inpPar.Results.Safety;
-            
+            obj.fac1 = inpPar.Results.FacMin;
+            obj.fac2 = inpPar.Results.FacMax;
+           
             obj.expo1 = 0.2 - obj.beta_ * 0.75;
             obj.facc1 = 1.0 / obj.fac1 ;
             obj.facc2 = 1.0 / obj.fac2 ;
