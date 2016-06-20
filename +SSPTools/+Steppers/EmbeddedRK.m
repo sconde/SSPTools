@@ -1,5 +1,9 @@
 classdef EmbeddedRK <  SSPTools.Steppers.ERK
     
+    properties 
+        tFinal;
+    end
+
     properties (Access = protected)%(Access = private)   
         bhat; % embedding weight vector
         isEmbedded = true; % using adaptive step
@@ -40,7 +44,6 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
         nrejct = 0;
         reject = 0;
         oldT = 0;
-        tFinal;
         dtMax;
         posneg;
         nfcn = 0;
@@ -117,8 +120,8 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
         
         
         function summary(obj)
-            fprintf(1, 'rtol= %12.5e, atol= %12.5e, fcn = %d, step = %d, accpt = %d, reject = %d\n',...
-                obj.relTol, obj.absTol, obj.nfcn, obj.nstep, obj.naccpt, obj.nrejct);
+            fprintf(1, '%15s: rtol= %12.5e, atol= %12.5e, fcn = %4d, step = %4d, accpt = %4d, reject = %4d\n',...
+                obj.name, obj.relTol, obj.absTol, obj.nfcn, obj.nstep, obj.naccpt, obj.nrejct);
         end
         
         function dt = startingStepSize(obj)

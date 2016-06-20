@@ -16,10 +16,11 @@ t = 0;
 %method = 'Merson45';
 %method = 'Zonneveld43';
 %method = 'Felhberg45';
-method = '38rule43';
-%method = 'SSPEmbeddedRK';
+%method = '38rule43';
+method = 'SSPEmbeddedRK';
 
-rk_method = '~/Dropbox/embedded-rk/butcher-optimization/Method/ERK/P4/Plin5/PhatLn5/S6/method_typeG_r_0.8150774145257_acc_-16.mat';
+%rk_method = '~/Dropbox/embedded-rk/butcher-optimization/Method/ERK/P4/Plin4/S5/method_typeG_r_0.6572570916924_acc_-16.mat';
+rk_method = '~/Dropbox/embedded-rk/butcher-optimization/Method/ERK/P4/Plin5/S5/method_typeG_r_0.5271866339745_acc_-16.mat';
 rk = load(rk_method);
 
 y0 = [1.5; 3];

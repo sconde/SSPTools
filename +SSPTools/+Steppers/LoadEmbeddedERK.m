@@ -19,8 +19,6 @@ classdef LoadEmbeddedERK < SSPTools.Steppers.EmbeddedERK
             
             
             r = [];
-            %TODO: where is the 38Ruler???
-            
             if strcmpi(inpPar.Results.MethodName, 'merson45')
                 % Solving Ordinary Differential Equation I
                 % Hairer, pg167. table 4.1
@@ -32,6 +30,17 @@ classdef LoadEmbeddedERK < SSPTools.Steppers.EmbeddedERK
                     1/2 0 -3/2 2 0];
                 b = [1/6 0  0 2/3 1/6];
                 bhat = [1/10 0 3/10 2/5 1/5];
+            elseif strcmpi(inpPar.Results.MethodName, 'heuneuler21')
+                p = 2; phat = 1;
+                A = [0 0;1 0]; b = [1/2 1/2]; bhat = [1 0];
+            elseif strcmpi(inpPar.Results.MethodName, 'fehlberg21')
+                p = 2; phat = 1;
+                A = [0 0 0;1/2 0 0;1/256 255/256 0];
+                b = A(3,:); bhat = [1/512 255/256 1/512];
+            elseif strcmpi(inpPar.Results.MethodName, 'bogackishampine32')
+                p = 3; phat = 2;
+                A = [0 0 0 0;1/2 0 0 0;0 3/4 0 0;2/9 1/3 4/9 0];
+                b = A(4,:); bhat = [7/24 1/4 1/3 1/8];
             elseif strcmpi(inpPar.Results.MethodName, 'zonneveld43') % Really slow
                 % Solving Ordinary Differential Equation I
                 % Hairer, pg167. table 4.1
