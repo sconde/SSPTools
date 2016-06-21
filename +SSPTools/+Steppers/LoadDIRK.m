@@ -96,7 +96,8 @@ classdef LoadDIRK < SSPTools.Steppers.DIRK
                 % pg100
                 % gamma = (1/sqrt(3))*cos(pi/18)+1/2\n"
                 % delta = 1/(6*(2*gamma-1)^2)\n"
-                gam = (1/sqrt(3))*cos(pi/18)+1/2; delt = 1/(6*gam - 1)^2;
+                gam = (1/sqrt(3))*cos(pi/18)+1/2;
+                delt = 1/(6*(2*gam - 1)^2);
                 A = zeros(3);
                 A(2,1) = 1/2 - gam;
                 A(3,1) = 2*gam;

@@ -7,6 +7,80 @@ classdef TestOrder < matlab.unittest.TestCase
     % Test Method Block
     methods (Test)
         % includes unit test functions
+        function testBurgersSDIRK22(testCase)
+            % test RK2 convegence for burgers
+            
+            import matlab.unittest.TestCase
+            import matlab.unittest.constraints.IsEqualTo
+            import matlab.unittest.constraints.AbsoluteTolerance
+            
+            dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, ...
+                'N', 16, 'Problem',TestProblems.PDEs.Burgers());
+            
+            dudt = SSPTools.Steppers.LoadDIRK('MethodName','SDIRK22',...
+                'dfdx', dfdx,...
+                'y0', @(x) sin(x));
+            
+            convergencePDE = Tests.Convergence('integrator', dudt,'Tfinal',...
+                0.4,'CFL', (1/2).^(1:5));
+            
+            convergencePDE.run();
+            obsOrder = convergencePDE.getOrder('L2');
+            espectedOrder = 2;
+            
+            testCase.assertThat(obsOrder, IsEqualTo(espectedOrder, ...
+                'Within', AbsoluteTolerance(0.2)))
+        end
+        
+        function testBurgersSDIRK23(testCase)
+            % test RK2 convegence for burgers
+            
+            import matlab.unittest.TestCase
+            import matlab.unittest.constraints.IsEqualTo
+            import matlab.unittest.constraints.AbsoluteTolerance
+            
+            dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, ...
+                'N', 16, 'Problem',TestProblems.PDEs.Burgers());
+            
+            dudt = SSPTools.Steppers.LoadDIRK('MethodName','SDIRK23',...
+                'dfdx', dfdx,...
+                'y0', @(x) sin(x));
+            
+            convergencePDE = Tests.Convergence('integrator', dudt,'Tfinal',...
+                0.4,'CFL', (1/2).^(1:5));
+            
+            convergencePDE.run();
+            obsOrder = convergencePDE.getOrder('L2');
+            espectedOrder = 3;
+            
+            testCase.assertThat(obsOrder, IsEqualTo(espectedOrder, ...
+                'Within', AbsoluteTolerance(0.2)))
+        end
+        
+        function testBurgersSDIRK34(testCase)
+            % test RK2 convegence for burgers
+            
+            import matlab.unittest.TestCase
+            import matlab.unittest.constraints.IsEqualTo
+            import matlab.unittest.constraints.AbsoluteTolerance
+            
+            dfdx = SSPTools.Discretizers.Spectral('derivativeOrder',1, ...
+                'N', 16, 'Problem',TestProblems.PDEs.Burgers());
+            
+            dudt = SSPTools.Steppers.LoadDIRK('MethodName','SDIRK34',...
+                'dfdx', dfdx,...
+                'y0', @(x) sin(x));
+            
+            convergencePDE = Tests.Convergence('integrator', dudt,'Tfinal',...
+                0.4,'CFL', (1/2).^(1:5));
+            
+            convergencePDE.run();
+            obsOrder = convergencePDE.getOrder('L2');
+            espectedOrder = 4;
+            
+            testCase.assertThat(obsOrder, IsEqualTo(espectedOrder, ...
+                'Within', AbsoluteTolerance(0.2)))
+        end
         
         function testBurgersSSP54(testCase)
             % test RK2 convegence for burgers
