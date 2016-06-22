@@ -2,6 +2,14 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
     
     properties 
         tFinal;
+        naccpt = 0;
+        nrejct = 0;
+        reject = 0;
+        oldT = 0;
+        dtMax;
+        posneg;
+        nfcn = 0;
+        nstep = 0;
     end
 
     properties (Access = protected)%(Access = private)   
@@ -40,14 +48,6 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
         preditedStepSize_ = NaN; % need to fix this
         fac11;
         last = 0;
-        naccpt = 0;
-        nrejct = 0;
-        reject = 0;
-        oldT = 0;
-        dtMax;
-        posneg;
-        nfcn = 0;
-        nstep = 0;
     end
     
     methods
@@ -161,6 +161,26 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             dt = min(100*h0, h1);
             obj.nextDt = dt;
             obj.nfcn = 2;
+        end
+        
+        function resetInitCondition(obj, tol)
+            if isa(obj.y0, 'function_handle')
+                obj.u0 = obj.y0(obj.x);
+            else
+                obj.u0 = obj.y0;
+            end
+            obj.t = 0.0;
+
+            obj.relTol = tol;
+            obj.absTol = tol;
+            obj.nfcn = 0;
+            obj.last = 0;
+            obj.naccpt = 0;
+            obj.nrejct = 0;
+            obj.reject = 0;
+            obj.oldT = 0;
+            obj.nfcn = 0;
+            obj.nstep = 0;
         end
         
         function [t, y, dt, err, bad_dt] = getState(obj)

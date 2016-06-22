@@ -9,7 +9,7 @@ addpath('../');
 addpath('~/Dropbox/SSPTools/');
 
 
-%method = 'DormandPrince54';
+method = 'DormandPrince54';
 %method = 'Merson45';
 %method = 'Zonneveld43';
 %method = 'Felhberg45';
