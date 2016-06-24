@@ -1,5 +1,6 @@
-function [  Violation_]=  burgersAdvection(dudt, lambda)
+function [  Violation_]=  burgersAdvection( lambda)
 
+global dudt 
 tvdFun = @(u) sum([abs(diff(u)); abs((u(1)-u(end)))]);
 
 Violation_ = nan(1, length(lambda));

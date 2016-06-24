@@ -80,42 +80,36 @@ classdef SSP < Tests.Test
         
         function run(obj, varargin)
             
-            continueTest = 0;
-            numViolation = 0;
-            tvbSolution = [];
-            tvdSolution = [];
-            cfl_ = obj.cfl;
-            dx_ = obj.dudt.dfdx.dx;
-            while cfl_ < obj.CFLMAX
-                obj.dudt.resetInitCondition();
-                [~, y] = obj.dudt.getState();
-                tv = obj.calcTV(y);
-                tvmax = tv;
-                dt = cfl_*dx_;
-                ti = 0;
-                tv_violation = false;
-                TVMAX = [];
-
-                for ti = 1:obj.Steps
-                    [~,dt] = obj.dudt.takeStep(dt);
-                    [~, y] = obj.dudt.getState();
-                    tv_new = obj.calcTV(y);
-                    TVMAX = [TVMAX; tv_new];
-                    tvmax = max(tv_new,tvmax);
-                end
+            L = [];
+            VV = [];
+            V = 0;
+            coarse = 1;
+            VV_ = [];
+            
+            keyboard
+            
+            while cfl_refinement > 10e-10
+                Violation_ = burgersAdvection( lambda);
                 
-                if obj.testTVB
-                    tvbSolution = [tvbSolution; [cfl_ max(TVMAX)]];
-                end
+                L = [L,lambda];
+                VV_ = [VV_, Violation_];
                 
-                if obj.testTVD
-                    tvdSolution = [tvdSolution; [cfl_ max(diff(TVMAX))]];
-                end
+                % find the first violation
+                ind = find(log10(Violation_) > -12, 1, 'first');
                 
-                cfl_ = cfl_ + obj.cflRefine;
+                if isempty(ind);  %If the observed CFL is outside original range
+                    maxL = max(lambda);
+                    ind = find(lambda == maxL, 1, 'first');
+                    lambda = linspace(maxL-cfl_refinement, maxL + 2*cfl_refinement,10);
+                else
+                    Ltemp = sort(L);
+                    ind_ = find(Ltemp == lambda(ind),1,'first');
+                    newL = Ltemp(ind_);
+                    lambda = linspace(newL-2*cfl_refinement,newL + 2*cfl_refinement,10);
+                end
+                cfl_refinement = max(diff(lambda))
+                
             end
-            obj.TVB = tvbSolution;
-            obj.TVD = tvdSolution;
         end
         
         function [ output ] = run_test(varargin) end
@@ -129,14 +123,14 @@ classdef SSP < Tests.Test
             semilogy(obj.TVD(:,1), obj.TVD(:,2),'x');
             ylim([1e-20 1]);
         end
-
+        
         function calculateSSP(obj)
             if obj.testTVB
                 diff_tv = log10(abs(obj.TVB(:,2) - obj.initTV));
                 indTV = diff_tv < -14;
                 diff_tv(indTV) = -15;
-%                 badTV = diff_tv >= -5;
-%                 diff_tv(badTV) = -5;
+                %                 badTV = diff_tv >= -5;
+                %                 diff_tv(badTV) = -5;
                 indSSP = find(~indTV,1)-1;
                 %plot(obj.TVB(:,1), diff_tv, 's', 'linewidth',2);
                 obj.ssp = obj.TVB(indSSP,1);

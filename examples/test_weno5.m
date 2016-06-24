@@ -27,9 +27,6 @@ dudt = SSPTools.Steppers.LoadERK('MethodName','MidPoint',...
 line1 = plot(dfdx.x, dudt.y0(dfdx.x),'-r','linewidth',2);
 axis([-1 1 0 1]);
 
-% dudt.takeStep(0.001)
-
-
 
 
 while t < Tfinal

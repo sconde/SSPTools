@@ -1,5 +1,6 @@
 clear all; close all; clc;
 
+global dudt 
 
 rk = loadMethod(2,2,2,2,1);
 r = rk.r;
@@ -49,7 +50,7 @@ VV_ = [];
 
 
 while cfl_refinement > 10e-10
-    Violation_ = burgersAdvection(dudt, lambda);
+    Violation_ = burgersAdvection( lambda);
     
     L = [L,lambda];
     VV_ = [VV_, Violation_];
