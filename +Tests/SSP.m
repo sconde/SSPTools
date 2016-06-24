@@ -7,6 +7,7 @@ classdef SSP < Tests.Test
         verbose;
         Tfinal;
         ssp;
+        theortical_r; 
     end
     
     properties ( Access = private)
@@ -26,6 +27,12 @@ classdef SSP < Tests.Test
         CFLMAX;
         cflRefine;
         sspCoef; % theorical ssp coef
+        startingr;
+        lambda;
+        cfl_refinement;
+        CFL;
+        %TV;
+        log10VV;
     end
     
     
@@ -46,6 +53,7 @@ classdef SSP < Tests.Test
             p.addParameter('TVD', false);
             p.addParameter('CFLMAX', 1.5);
             p.addParameter('CFLRefinement',0.1);
+            p.addParameter('r', 1);
             p.parse(varargin{:});
             
             %obj = obj@Tests.Test(varargin{:});
@@ -60,9 +68,10 @@ classdef SSP < Tests.Test
             obj.testTVD = p.Results.TVD;
             obj.CFLMAX = p.Results.CFLMAX;
             obj.cflRefine = p.Results.CFLRefinement;
+            obj.theortical_r = p.Results.r;
             
             %TODO: is this correct?
-            assert(any([obj.testTVD obj.testTVB]),'Must choice TVD or TVB');
+            %assert(any([obj.testTVD obj.testTVB]),'Must choice TVD or TVB');
             
             
             %TODO : a better way to test for the problem
@@ -75,6 +84,15 @@ classdef SSP < Tests.Test
                 obj.sspCoef = obj.dudt.r;
             end
             
+            obj.initialize();
+            
+        end
+        
+        function initialize(obj)
+            obj.startingr = min(obj.theortical_r,.005);
+            %obj.sp = min(obj.theortical_r/10,.005);
+            obj.lambda = linspace(obj.startingr, obj.theortical_r + 0.5, 10);
+            obj.cfl_refinement = max(diff(obj.lambda));
         end
         
         
@@ -85,33 +103,57 @@ classdef SSP < Tests.Test
             V = 0;
             coarse = 1;
             VV_ = [];
-            
-            keyboard
-            
-            while cfl_refinement > 10e-10
-                Violation_ = burgersAdvection( lambda);
+            lambda_ = obj.lambda;
+                        
+            while obj.cfl_refinement > 1e-10
+                Violation_ = obj.runRange(lambda_);
                 
-                L = [L,lambda];
+                L = [L,lambda_];
                 VV_ = [VV_, Violation_];
                 
                 % find the first violation
                 ind = find(log10(Violation_) > -12, 1, 'first');
                 
                 if isempty(ind);  %If the observed CFL is outside original range
-                    maxL = max(lambda);
-                    ind = find(lambda == maxL, 1, 'first');
-                    lambda = linspace(maxL-cfl_refinement, maxL + 2*cfl_refinement,10);
+                    maxL = max(lambda_);
+                    ind = find(lambda_ == maxL, 1, 'first');
+                    lambda_ = linspace(maxL - obj.cfl_refinement, maxL + 2*obj.cfl_refinement,10);
                 else
                     Ltemp = sort(L);
-                    ind_ = find(Ltemp == lambda(ind),1,'first');
+                    ind_ = find(Ltemp == lambda_(ind),1,'first');
                     newL = Ltemp(ind_);
-                    lambda = linspace(newL-2*cfl_refinement,newL + 2*cfl_refinement,10);
+                    lambda_ = linspace(newL-2*obj.cfl_refinement,newL + 2*obj.cfl_refinement,10);
                 end
-                cfl_refinement = max(diff(lambda))
-                
+                obj.cfl_refinement = max(diff(lambda_));                
             end
+            
+            obj.CFL = L;
+            obj.TV = VV_;
         end
         
+        function Violation_ = runRange(obj, lambda)
+            tvdFun = @(u) sum([abs(diff(u)); abs((u(1)-u(end)))]);
+            
+            Violation_ = nan(1, length(lambda));
+            nSteps = 5;
+            for i = 1:numel(lambda);
+                dt = lambda(i)*obj.dudt.dfdx.dx;
+                
+                obj.dudt.resetInitCondition();
+                [~, y_] = obj.dudt.getState();
+                TV_ = nan(1, nSteps);
+                TV_(1) = tvdFun(y_);
+                
+                for tt = 2:nSteps
+                    obj.dudt.takeStep(dt);
+                    [~, y_] = obj.dudt.getState();
+                    TV_(tt) = tvdFun(y_);
+                end
+                i
+                Violation_(i) = max([diff(TV_),1e-15]);
+            end
+        end
+                    
         function [ output ] = run_test(varargin) end
         
         function plotSolution(obj)
@@ -120,28 +162,18 @@ classdef SSP < Tests.Test
             obj.calculateSSP();
             
             %now plot the solution
-            semilogy(obj.TVD(:,1), obj.TVD(:,2),'x');
-            ylim([1e-20 1]);
+            plot(obj.CFL, obj.log10VV, 'kx', 'markersize', 8);
         end
         
         function calculateSSP(obj)
-            if obj.testTVB
-                diff_tv = log10(abs(obj.TVB(:,2) - obj.initTV));
-                indTV = diff_tv < -14;
-                diff_tv(indTV) = -15;
-                %                 badTV = diff_tv >= -5;
-                %                 diff_tv(badTV) = -5;
-                indSSP = find(~indTV,1)-1;
-                %plot(obj.TVB(:,1), diff_tv, 's', 'linewidth',2);
-                obj.ssp = obj.TVB(indSSP,1);
-            else
-                goodIdx = obj.TVD(:,2) <= 1e-14;
-                obj.TVD(goodIdx,2) = 1e-15;
-                badIDX = obj.TVD(:,2) >= 1e-0;
-                obj.TVD(badIDX,2) = 1e-0;
-                indSSP = find(~goodIdx,1)-1;
-                obj.ssp = obj.TVD(indSSP,1);
-            end
+            obj.log10VV = log10(obj.TV);
+            extremeInd = obj.log10VV >= 0;
+            obj.log10VV(extremeInd) = 0;
+            
+            % get the index of last stable cfl (this is the observed SSP)
+            indGood = obj.log10VV <= -14;
+            goodSSPInd = find(indGood, 1, 'last');
+            obj.ssp = obj.CFL(goodSSPInd);
         end
     end
     
