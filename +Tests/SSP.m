@@ -7,7 +7,10 @@ classdef SSP < Tests.Test
         verbose;
         Tfinal;
         ssp;
-        theortical_r; 
+        theortical_r;
+        TV;
+        log10VV;
+        CFL;
     end
     
     properties ( Access = private)
@@ -17,7 +20,6 @@ classdef SSP < Tests.Test
         u0;
         problemName;
         initTV;
-        TV;
         numViolation;
         Steps;
         testTVB;
@@ -30,9 +32,7 @@ classdef SSP < Tests.Test
         startingr;
         lambda;
         cfl_refinement;
-        CFL;
         %TV;
-        log10VV;
     end
     
     
@@ -122,13 +122,16 @@ classdef SSP < Tests.Test
                     Ltemp = sort(L);
                     ind_ = find(Ltemp == lambda_(ind),1,'first');
                     newL = Ltemp(ind_);
-                    lambda_ = linspace(newL-2*obj.cfl_refinement,newL + 2*obj.cfl_refinement,10);
+                    lambda_ = linspace(newL-2*obj.cfl_refinement,newL + 2*obj.cfl_refinement,10); % need to make sure this is all positive
                 end
                 obj.cfl_refinement = max(diff(lambda_));                
             end
             
             obj.CFL = L;
             obj.TV = VV_;
+            
+            %first calculate the SSP
+            obj.calculateSSP();
         end
         
         function Violation_ = runRange(obj, lambda)
@@ -149,7 +152,6 @@ classdef SSP < Tests.Test
                     [~, y_] = obj.dudt.getState();
                     TV_(tt) = tvdFun(y_);
                 end
-                i
                 Violation_(i) = max([diff(TV_),1e-15]);
             end
         end
@@ -157,9 +159,6 @@ classdef SSP < Tests.Test
         function [ output ] = run_test(varargin) end
         
         function plotSolution(obj)
-            
-            %first calculate the SSP
-            obj.calculateSSP();
             
             %now plot the solution
             plot(obj.CFL, obj.log10VV, 'kx', 'markersize', 8);
