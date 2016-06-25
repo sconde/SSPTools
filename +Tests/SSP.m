@@ -48,7 +48,7 @@ classdef SSP < Tests.Test
             p.addParameter('verbose', 'none'); %TODO: decide if type should be logical instead
             p.addParameter('Tfinal', 0.1);
             p.addParameter('NumberAllowedViolation', 10);
-            p.addParameter('Steps', 50);
+            p.addParameter('Steps', 20);
             p.addParameter('TVB', false);
             p.addParameter('TVD', false);
             p.addParameter('CFLMAX', 1.5);
@@ -138,7 +138,7 @@ classdef SSP < Tests.Test
             tvdFun = @(u) sum([abs(diff(u)); abs((u(1)-u(end)))]);
             
             Violation_ = nan(1, length(lambda));
-            nSteps = 5;
+            nSteps = obj.Steps;
             for i = 1:numel(lambda);
                 dt = lambda(i)*obj.dudt.dfdx.dx;
                 

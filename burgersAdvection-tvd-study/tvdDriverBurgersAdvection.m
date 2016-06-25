@@ -16,7 +16,7 @@ fig = figure('position',[100 100 850 600]); clf;
 LISTOFLEG = cell(size(A));
 for i = 1:numel(A)
     %[  cfl, tv , ssp] =  burgersAdvection( rk, A(i) ) ;
-    [  cfl, tv, ssp ]=  buckleeLeveretBurgers( rk,A(i))
+    [  cfl, tv, ssp ] =  buckleeLeveretBurgers( rk, A(i));
     CFL{i} = cfl;
     TV{i} = tv;
     plot(cfl, tv, MARKERCell{i}); hold on

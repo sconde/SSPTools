@@ -147,6 +147,7 @@ classdef IMEXRK < SSPTools.Steppers.RK
             % first stage implicit solve
             obj.Y(:,1) = obj.solver(u0,dt, 1);
             
+            try
             % intermediate stage value
             for i = 2:obj.s
                 
@@ -158,9 +159,23 @@ classdef IMEXRK < SSPTools.Steppers.RK
                     temp = temp + dt*obj.A(i,j)*obj.F(dt + obj.c(j), obj.Y(:,j)) + ...
                         dt*obj.At(i,j)*obj.G(dt + obj.ct(j), obj.Y(:,j));
                 end
-                obj.Y(:,i) = obj.solver(temp, dt, i);
+                
+                if any(isnan(temp))
+                    y = inf(size(temp));
+                    break
+                else
+                    obj.Y(:,i) = obj.solver(temp, dt, i);
+                end
+                
+            end
+            catch err
+                keyboard
             end
             
+%             keyboard
+%             if all(isinf(y))
+%                 keyboard
+%             end
             % combine
             y = u0;
             for i = 1:obj.s
