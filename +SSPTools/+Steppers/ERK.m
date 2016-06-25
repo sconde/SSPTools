@@ -54,30 +54,22 @@ classdef ERK < SSPTools.Steppers.RK
             % function [y, dt] = takeStep(dt)
             % returns the new solution (y) and time-step taken (dt)
             u0 = obj.u0;
+            t_ = obj.t;
             obj.Y(:,1) = u0;
-            obj.Fvec(:,1) = obj.L(dt, u0);
+            obj.Fvec(:,1) = obj.L(t_ , u0);
             obj.dt_ = dt;
             
             % intermediate stage value
             for i = 2:obj.s
                 temp = u0;
                 for j = 1:i-1
-                    %keyboard
-                    %temp = temp + dt*obj.A(i,j)*obj.L(dt + obj.c(j), obj.Y(:,j));
                     temp = temp + dt*obj.A(i,j)*obj.Fvec(:, j);
-                    %keyboard
                 end
-                obj.Y(:,i) = temp;
-                obj.Fvec(:, i) = obj.L(dt + obj.c(i), temp);
+                obj.Fvec(:, i) = obj.L(t_ + obj.c(i)*dt, temp);
             end
             
             % combine
-            y = u0;
-            for i = 1:obj.s
-                %y = y + dt*obj.b(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
-                y = y + dt*obj.b(i)*obj.Fvec(:, i);
-            end
-            
+            y = u0 + dt*obj.Fvec*obj.b(:);
             obj.u0 = y;
             obj.t  = obj.t + dt;
         end
