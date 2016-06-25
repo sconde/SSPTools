@@ -146,6 +146,7 @@ classdef IMEXRK < SSPTools.Steppers.RK
         function [y, dt] = takeStep(obj, dt)
             % function [y, dt] = takeStep(dt)
             % returns the new solution (y) and time-step taken (dt)
+            
             u0 = obj.u0;
             
             % first stage implicit solve
