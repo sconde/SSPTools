@@ -5,8 +5,8 @@ N = 16;
 Tfinal = 0.4;
 
 %testing = 'ERK';
-testing = 'DIRK';
-%testing = 'IMEXRK';
+%testing = 'DIRK';
+testing = 'IMEXRK';
 %testing = 'IMEXRK-SSP11';
 
 

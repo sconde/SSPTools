@@ -15,6 +15,8 @@ classdef IMEXRK < SSPTools.Steppers.RK
         Y;
         F;
         G;
+        Fvec;
+        Gvec;
         isImplicitLinear = true; %so far handling linear advection
         NL;
         DT;
@@ -122,6 +124,8 @@ classdef IMEXRK < SSPTools.Steppers.RK
             obj.n = size(obj.u0,1);
             obj.I = speye(obj.n);
             obj.Y = zeros(obj.n, obj.s);
+            obj.Gvec = zeros(obj.n, obj.s);
+            obj.Fvec = zeros(obj.n, obj.s);
         end
         
         
@@ -145,43 +149,25 @@ classdef IMEXRK < SSPTools.Steppers.RK
             u0 = obj.u0;
             
             % first stage implicit solve
-            obj.Y(:,1) = obj.solver(u0,dt, 1);
+            te = obj.solver(u0,dt, 1);
+            obj.Fvec(:, 1) = obj.F(obj.t + dt*obj.c(1), te);
+            obj.Gvec(:, 1) = obj.G(obj.t + dt*obj.ct(1), te);
             
-            try
             % intermediate stage value
             for i = 2:obj.s
                 
-                obj.utex(:,i) = obj.F(dt + obj.c(i), obj.Y(:,i));
-                obj.utimp(:,i) = obj.G(dt + obj.ct(i), obj.Y(:,i));
-                
-                temp = u0;
+                tempt = u0;
                 for j = 1:i-1
-                    temp = temp + dt*obj.A(i,j)*obj.F(dt + obj.c(j), obj.Y(:,j)) + ...
-                        dt*obj.At(i,j)*obj.G(dt + obj.ct(j), obj.Y(:,j));
+                    tempt = tempt + dt*obj.A(i,j)*obj.Fvec(:,j) + ...
+                        dt*obj.At(i,j)*obj.Gvec(:,j);
                 end
-                
-                if any(isnan(temp))
-                    y = inf(size(temp));
-                    break
-                else
-                    obj.Y(:,i) = obj.solver(temp, dt, i);
-                end
-                
+                te = obj.solver(tempt, dt, i);
+                obj.Fvec(:, i) = obj.F(obj.t + dt * obj.c(i), te);
+                obj.Gvec(:, i) = obj.G(obj.t + dt * obj.ct(i), te);
             end
-            catch err
-                keyboard
-            end
-            
-%             keyboard
-%             if all(isinf(y))
-%                 keyboard
-%             end
+
             % combine
-            y = u0;
-            for i = 1:obj.s
-                y = y + dt*obj.b(i)*obj.F(dt + obj.c(i), obj.Y(:,i)) +...
-                    dt*obj.bt(i)*obj.G(dt + obj.c(i), obj.Y(:,i));
-            end
+            y = u0 + dt*obj.Fvec*obj.b(:) + dt*obj.Gvec*obj.bt(:);
             
             obj.u0 = y;
             obj.t = obj.t + dt;
