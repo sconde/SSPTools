@@ -16,6 +16,7 @@ classdef DIRK < SSPTools.Steppers.RK
         I;
         isImplicitLinear;
         DT;
+        Gvec;
     end
     
     methods
@@ -47,6 +48,7 @@ classdef DIRK < SSPTools.Steppers.RK
             
             obj.name = p.Results.name;            
             obj.Y = zeros(obj.n, obj.s);
+            obj.Gvec = zeros(obj.n, obj.s);
             obj.I = speye(obj.n);
             
             if isa(obj.ExplicitProblem, 'TestProblems.ODEs.ODE')
@@ -84,23 +86,21 @@ classdef DIRK < SSPTools.Steppers.RK
             obj.dt_ = dt;
             
             % first stage implicit solve
-            obj.Y(:,1) = obj.solver(u0,dt, 1);
+            te = obj.solver(u0, dt, 1);
+            obj.Gvec(:, 1) = obj.L(dt + obj.c(1), te);
             
             % intermediate stage value
-            for i = 1:obj.s
-                temp = u0;
+            for i = 2:obj.s
+                tempt = u0;
                 for j = 1:i-1
-                    temp = temp + dt*obj.A(i,j)*obj.L(dt + obj.c(j), obj.Y(:,j));
+                    tempt = tempt + dt*obj.A(i,j)*obj.Gvec(:, j);
                 end
-                obj.Y(:,i) = obj.solver(temp, dt, i);
+                te = obj.solver(tempt, dt, i);
+                obj.Gvec(:, i) = obj.L(dt + obj.c(i), te);
             end
             
             % combine
-            y = u0;
-            for i = 1:obj.s
-                y = y + dt*obj.b(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
-            end
-            
+            y = u0 + dt*obj.Gvec*obj.b(:); 
             obj.u0 = y;
             obj.t = obj.t + dt;
         end
