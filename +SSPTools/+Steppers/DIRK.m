@@ -87,7 +87,7 @@ classdef DIRK < SSPTools.Steppers.RK
             
             % first stage implicit solve
             te = obj.solver(u0, dt, 1);
-            obj.Gvec(:, 1) = obj.L(dt + obj.c(1), te);
+            obj.Gvec(:, 1) = obj.L(obj.t + dt*obj.c(1), te);
             
             % intermediate stage value
             for i = 2:obj.s
@@ -96,7 +96,7 @@ classdef DIRK < SSPTools.Steppers.RK
                     tempt = tempt + dt*obj.A(i,j)*obj.Gvec(:, j);
                 end
                 te = obj.solver(tempt, dt, i);
-                obj.Gvec(:, i) = obj.L(dt + obj.c(i), te);
+                obj.Gvec(:, i) = obj.L(obj.t + dt*obj.c(i), te);
             end
             
             % combine
@@ -117,7 +117,7 @@ classdef DIRK < SSPTools.Steppers.RK
             try
             epss = 1e-14;
             options = optimset('Display','off', 'TolFun',epss, 'TolX',epss);
-            fzero = @(K) (y + dt*obj.A(i,i)*obj.L(dt + obj.c(i), K))  - K;
+            fzero = @(K) (y + dt*obj.A(i,i)*obj.L(obj.t + dt*obj.c(i), K))  - K;
             [y, ~] = fsolve(@(Y) fzero(Y), y, options);
             catch err
                 keyboard
