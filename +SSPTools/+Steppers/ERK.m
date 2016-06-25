@@ -11,6 +11,7 @@ classdef ERK < SSPTools.Steppers.RK
         isLowStorage = false;  % need a way to determine is low-storage
         n;
         Y;
+        Fvec;
     end
     
     methods
@@ -36,6 +37,7 @@ classdef ERK < SSPTools.Steppers.RK
             
             obj.name = p.Results.name;
             obj.Y = zeros(obj.n, obj.s);
+            obj.Fvec = zeros(obj.n, obj.s);
             
             if isa(obj.dfdx, 'WenoCore.Weno')
                 obj.dfdx.f = obj.ExplicitProblem.f;
@@ -53,6 +55,7 @@ classdef ERK < SSPTools.Steppers.RK
             % returns the new solution (y) and time-step taken (dt)
             u0 = obj.u0;
             obj.Y(:,1) = u0;
+            obj.Fvec(:,1) = obj.L(dt, u0);
             obj.dt_ = dt;
             
             % intermediate stage value
@@ -60,16 +63,19 @@ classdef ERK < SSPTools.Steppers.RK
                 temp = u0;
                 for j = 1:i-1
                     %keyboard
-                    temp = temp + dt*obj.A(i,j)*obj.L(dt + obj.c(j), obj.Y(:,j));
+                    %temp = temp + dt*obj.A(i,j)*obj.L(dt + obj.c(j), obj.Y(:,j));
+                    temp = temp + dt*obj.A(i,j)*obj.Fvec(:, j);
                     %keyboard
                 end
                 obj.Y(:,i) = temp;
+                obj.Fvec(:, i) = obj.L(dt + obj.c(i), temp);
             end
             
             % combine
             y = u0;
             for i = 1:obj.s
-                y = y + dt*obj.b(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
+                %y = y + dt*obj.b(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
+                y = y + dt*obj.b(i)*obj.Fvec(:, i);
             end
             
             obj.u0 = y;
