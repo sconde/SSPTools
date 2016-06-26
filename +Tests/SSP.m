@@ -118,23 +118,22 @@ classdef SSP < Tests.Test
                 
                 
                 % find the first violation
-                ind = find(log10(Violation_) > obj.acc, 1, 'first');
+                %ind = find(log10(Violation_) > obj.acc, 1, 'first');
+                ind = find(log10(VV_) > -12, 1, 'first');
                 
                 if isempty(ind);  %If the observed CFL is outside original range
                     maxL = max(lambda_);
-                    ind = find(lambda_ == maxL, 1, 'first');
-                    lambda_ = linspace(maxL - obj.cfl_refinement, maxL + 2*obj.cfl_refinement,10);
+                    lambda_ = linspace(maxL - 0.2, maxL + 0.2,10);
                 else
 
                     Ltemp = sort(L);
-                    ind_ = find(Ltemp == lambda_(ind),1,'first');
+                    ind_ = find(Ltemp == L(ind),1,'first');
                     
                     if ind_ > 1
-                     lambda_ = sort(linspace(Ltemp(ind_ - 1), Ltemp(ind_), 5))
+                     lambda_ = sort(linspace(Ltemp(ind_ - 1), Ltemp(ind_) , 5));
                     else
-                        keyboard
                         newL = Ltemp(ind_);
-                        lambda_ = linspace(newL-2*obj.cfl_refinement,newL,10); % need to make sure this is all positive
+                        lambda_ = max(0,linspace(newL-0.1,newL+0.1,10)); % need to make sure this is all positive
                     end
                 end
                 obj.cfl_refinement = max(abs(diff(lambda_)));
@@ -142,6 +141,7 @@ classdef SSP < Tests.Test
                 acct = obj.acc;
                 numRefinement = numRefinement + 2;
                 ref = obj.cfl_refinement;
+                lambda_;
             end
             
             obj.CFL = L;
