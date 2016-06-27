@@ -92,7 +92,7 @@ classdef SSP < Tests.Test
         end
         
         function initialize(obj)
-            obj.startingr = max(obj.theortical_r/2,.005);
+            obj.startingr = min(obj.theortical_r/2,.005);
             %obj.sp = min(obj.theortical_r/10,.005);
             obj.lambda = linspace(obj.startingr, obj.theortical_r + 0.5, 10);
             obj.cfl_refinement = max(diff(obj.lambda));
@@ -123,7 +123,8 @@ classdef SSP < Tests.Test
                 
                 if isempty(ind);  %If the observed CFL is outside original range
                     maxL = max(lambda_);
-                    lambda_ = linspace(maxL - 0.2, maxL + 0.2,10);
+                    %lambda_ = linspace(maxL - 0.2, maxL + 0.2,10);
+                    lambda_ = linspace(maxL - 0.2, maxL + 0.2,5);
                 else
 
                     Ltemp = sort(L);
@@ -179,7 +180,6 @@ classdef SSP < Tests.Test
                     end
                     
                 catch err
-                    keyboard
                     break
                 end
             end
