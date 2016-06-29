@@ -36,6 +36,7 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
         minStepSize;
         maxStepSize;
         safetyFactor;
+        stepSizeControl;
     end
     
     properties(Access = protected)
@@ -73,6 +74,7 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             addParameter(inpPar, 'Tfinal', 1);
             addParameter(inpPar, 'Beta', 0.04);
             addParameter(inpPar, 'Safety', 0.9);
+            addParameter(inpPar, 'UseNew', true);
            
             inpPar.parse(varargin{:});
             
@@ -110,6 +112,12 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             else
                 obj.posneg = 1;
             end
+
+            if inpPar.Results.UseNew
+                obj.stepSizeControl = @(dt, y, yhat) obj.stepSizeControlNew(dt, y, yhat);
+            else
+                obj.stepSizeControl = @(dt, y, yhat) obj.stepSizeControlOriginal(dt, y, yhat);
+            end
             
         end
         
@@ -120,7 +128,7 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
         
         
         function summary(obj)
-            fprintf(1, '%15s: rtol= %12.5e, atol= %12.5e, fcn = %4d, step = %4d, accpt = %4d, reject = %4d\n',...
+            fprintf(1, '%15s: rtol= %12.5e, atol= %12.5e, fcn = %6d, step = %6d, accpt = %6d, reject = %6d\n',...
                 obj.name, obj.relTol, obj.absTol, obj.nfcn, obj.nstep, obj.naccpt, obj.nrejct);
         end
         
@@ -213,7 +221,7 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             sk = obj.absTol + obj.relTol * max(abs(obj.u0), abs(yhat));
         end
         
-        function [y, t] = stepSizeControl(obj, dt,  y, yhat)
+        function [y, t] = stepSizeControlOriginal(obj, dt,  y, yhat)
             % Automatic Step Size Control
             % Hairer. Solving ODE I. pg. 167
             
@@ -266,6 +274,71 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
                 % reject
                 
                 hnew = h/(min(obj.facc1, obj.fac11/obj.safe));
+                obj.reject = 1;
+                y = obj.u0;
+                t = obj.t;
+                
+                if (obj.naccpt >= 1)
+                    obj.nrejct = obj.nrejct + 1;
+                end
+                obj.last = 0;
+                obj.reject = 1;
+                obj.nextDt = hnew;
+            end
+            
+            obj.lte_ = lte;
+            obj.nextDt = hnew;
+            
+        end
+
+        function [y, t] = stepSizeControlNew(obj, dt,  y, yhat)
+            % Automatic Step Size Control
+            % Hairer. Solving ODE I. pg. 167
+            
+            
+            h = dt;
+            lte = abs(y - yhat);
+            obj.lte_ = norm(lte, Inf);
+            
+            sk = obj.sci_fun(y, yhat);
+            err = sum((lte./sk).^2);
+            err = sqrt(err /length(y));
+            
+            % /* we require fac1 <= hnew/h <= fac2 */
+            pwr = 1/(min(obj.p, obj.phat));
+            fac = min(obj.fac2, max(obj.fac1, obj.safe*(1/err)^(pwr)));
+            hnew = h * fac;
+
+            if abs(err) <= 1 % accept the solution
+                % accept the step
+                obj.facold = max(err, 1.0E-4);
+                obj.naccpt = obj.naccpt + 1;
+                obj.oldT = obj.t;
+                t = obj.t + dt;
+                
+                % /* normal exit */
+                if (obj.last)
+                    obj.nextDt = hnew;
+                    %obj.t = t;
+                    idid = 1;
+                    keyboard
+                    %break;
+                end
+                
+                if (abs(hnew) > obj.dtMax)
+                    hnew = obj.posneg * obj.dtMax;
+                end
+                
+                if (obj.reject)
+                    hnew = obj.posneg * min(abs(hnew), abs(h));
+                end
+                
+                obj.reject = 0;
+                
+            else % reject the solution
+                % reject
+                
+                %hnew = h/(min(obj.facc1, obj.fac11/obj.safe));
                 obj.reject = 1;
                 y = obj.u0;
                 t = obj.t;
