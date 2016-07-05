@@ -51,6 +51,7 @@ Non-Oscillatory Schemes)
 ### Contribution guidelines ###
 
 * Writing tests
+	- please write unit tests and make sure that all previously written unit tests are running and `passing!!`
 * Code review
 * Other guidelines
 
