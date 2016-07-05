@@ -76,19 +76,6 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
             
             obj.nx = numel(obj.x);
             obj.x = obj.x(:);
-                        
-            %if strcmpi(obj.bc, 'periodic')
-            %    
-            %    % define the descritization matrix
-            %    [r,c] = deal(zeros(obj.nx,1));
-            %    r([1 obj.nx]) = [1 -1];
-            %    c([1 2]) = [1 -1];
-            %    obj.D = toeplitz(c,r)/(-obj.dx);
-            %else %TODO: is this correct?
-            %    e = ones(size(obj.x));
-            %    obj.D = spdiags([-e e],-1:0,obj.nx,obj.nx)/(-obj.dx);
-            %    obj.D(end,end-1) = 0;
-            %end
             
             obj.D = obj.initialize();
         end % end constructor
