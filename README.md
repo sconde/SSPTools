@@ -7,6 +7,8 @@ More information about SSP methods and current researh projects can be found at 
 
 Please check out [SSP_Tools](https://github.com/DanielHiggs/SSP_Tools),the first version written by Dan Higgs.
 
+MATLAB R2013b is required for the `addParameter` functions used in the definition of the classes.
+
 ## Integrator
 * Runge-Kutta Method (using the Butcher Tableau)
 	- ERK (Explicit Runge-Kutta)

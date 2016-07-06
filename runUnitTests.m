@@ -1,5 +1,9 @@
 clear all; close all; clc
 
+
+% check that the matlab version must be at least R2013b
+assert(~verLessThan('matlab', 'R2013b'),'MATLAB R2013b is required');
+
 cellOfTest = {UnitTests.TestOrder; ...  % convergence tests
     UnitTests.TestTVD; ...              % SSP Tests
     UnitTests.TestODEs; ...             % ODE Tets
