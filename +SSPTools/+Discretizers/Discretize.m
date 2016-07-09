@@ -4,6 +4,10 @@ classdef Discretize < handle
         derivativeOrder;
         x;
         problem;
+        y;
+        dimN;
+        ny;
+        dy;
     end
     
     methods

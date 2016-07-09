@@ -10,6 +10,7 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
         dx;
         systemSize;
         direction;
+        flagin;
     end
     
     properties (Access = private)
@@ -33,6 +34,7 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
             addParameter(p, 'Problem', []);
             addParameter(p, 'Direction', 'FD');
             addParameter(p, 'OrderAccuracy', 1);
+            addParameter(p, 'Dimension', 1);
             p.parse(varargin{:});
             
             if ~isempty(p.Results.Problem)
@@ -45,6 +47,7 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
             obj.direction = p.Results.Direction;
             obj.orderAccuracy = p.Results.OrderAccuracy;
             obj.stencilSize = obj.orderAccuracy + 1;
+            obj.dimN = p.Results.Dimension;
             
             if strcmp(obj.direction,'CD') % centered finite difference
                 obj.domainStencil = -obj.orderAccuracy/2:obj.orderAccuracy/2;
@@ -78,6 +81,7 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
             obj.x = obj.x(:);
             
             obj.D = obj.initialize();
+            keyboard
         end % end constructor
         
     end
@@ -106,7 +110,25 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
             T_ = diffMatix(obj, obj.derivativeOrder, obj.orderAccuracy, ...
                 obj.nx, periodic_, obj.domainStencil)';
             T_ = T_/obj.dx;
-
+            
+            % for 2D case
+            if obj.dimN > 1
+                % at the moment, just assume square, structured grid
+                obj.domain = repmat(obj.domain,obj.dimN,1);
+                obj.y = obj.x;
+                obj.dy = obj.dx;
+                
+                [X, Y] = meshgrid(obj.x, obj.y);
+                flagin_ = false(size(X));
+                flagin_(2:end-1, 2:end-1) = true;
+                flagin_ = flagin_(:);
+                I_ = speye(obj.nx);
+                T_ = kron(T_, I_) + kron(I_, T_);
+                obj.x = X;
+                obj.y = Y;
+                obj.flagin = flagin_;
+            end
+            
         end % initialize
         
         function c = fdcoeffF(obj, k, xbar, x)
