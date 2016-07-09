@@ -3,6 +3,7 @@ classdef Brusselator < TestProblems.ODEs.ODE
     properties
         ep;
         isLinear;
+        isSystem = false;
     end
     
     methods

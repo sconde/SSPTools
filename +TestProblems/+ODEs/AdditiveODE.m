@@ -1,10 +1,10 @@
-classdef ODE < handle
+classdef AdditiveODE < handle
     
     properties
         name;
         f;
+        g;
         isSystem = false;
-        systemSize = 1;
     end
     
     methods
@@ -16,7 +16,10 @@ classdef ODE < handle
     end
     
     methods (Access = protected)
-        function dudt = rhs(u)
+        function dudt = Frhs(u) % explicit function
+        end
+        
+        function dudt = Grhs(u) % implicit function
         end
     end
 end
