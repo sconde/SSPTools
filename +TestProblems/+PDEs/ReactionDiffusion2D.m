@@ -66,7 +66,7 @@ classdef ReactionDiffusion2D < handle
                         
         end % ReactionDiffusion2D constructor
         
-        function F = flux(obj, t, u)
+        function FF = flux(obj, t, u)
             
             
             x_ = obj.X_(obj.flagin);
@@ -118,8 +118,8 @@ classdef ReactionDiffusion2D < handle
             %dfdx.L = @(t, y) obj.flux( t, u);
             obj.f = @(t, u) obj.flux( t, u);
             obj.em = @(u) ones(size(u));
+            dfdx.systemSize = obj.systemSize;
             
-            %keyboard
         end % initialize
         
        

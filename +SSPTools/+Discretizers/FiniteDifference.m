@@ -101,6 +101,11 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
     methods
         
         function [y] = L(obj, t, y)
+            
+            % why is this being called??
+            
+            keyboard
+            
             yx = zeros(size(y));
             IDX = obj.nx*[0:obj.systemSize-1 ; 1:obj.systemSize]';
             IDX = IDX + [ones(size(IDX(:,1))) zeros(size(IDX(:,1)))];

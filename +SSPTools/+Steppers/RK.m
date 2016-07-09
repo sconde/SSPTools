@@ -150,15 +150,11 @@ classdef RK < handle
             t = obj.t;
             nextDt = obj.dt_;
            
-                        
             if ~isempty(obj.dfdx) && (obj.dfdx.systemSize > 1)
-                y = reshape(y, obj.dfdx.nx, obj.dfdx.systemSize);
+                n_ = length(y);
+                y = reshape(y, n_/2, obj.dfdx.systemSize);
             end
-            %             %Q = [r ru E];
-            %             density   = u(1:obj.N);
-            %             momentum  = u(obj.N+1:2*(obj.N));
-            %             energy    = u(2*(obj.N)+1:3*(obj.N));
-            %             keyboard
+
         end
         
         function r = am_radius(obj, A,b)

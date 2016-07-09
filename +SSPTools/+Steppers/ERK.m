@@ -51,9 +51,12 @@ classdef ERK < SSPTools.Steppers.RK
             obj.Y = zeros(obj.n, obj.s);
             obj.Fvec = zeros(obj.n, obj.s);
             
-            if isa(obj.dfdx, 'WenoCore.Weno') || ( obj.ExplicitProblem.systemSize > 1)
+            if isa(obj.dfdx, 'WenoCore.Weno')
+                                
                 obj.dfdx.f = obj.ExplicitProblem.f;
                 obj.dfdx.em = obj.ExplicitProblem.em;
+            elseif ( obj.ExplicitProblem.systemSize > 1)
+                obj.L = @(t,u) obj.ExplicitProblem.f(t,u);
             end
             
         end % end constructor
@@ -69,6 +72,7 @@ classdef ERK < SSPTools.Steppers.RK
             u0 = obj.u0;
             t_ = obj.t;
             obj.Y(:,1) = u0;
+            
             obj.Fvec(:,1) = obj.L(t_ , u0);
             obj.dt_ = dt;
             
@@ -85,6 +89,7 @@ classdef ERK < SSPTools.Steppers.RK
             y = u0 + dt*obj.Fvec*obj.b(:);
             obj.u0 = y;
             obj.t  = obj.t + dt;
+            
         end
         
     end
