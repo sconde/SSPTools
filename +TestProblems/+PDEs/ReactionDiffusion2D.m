@@ -67,12 +67,15 @@ classdef ReactionDiffusion2D < handle
         end % ReactionDiffusion2D constructor
         
         function F = flux(obj, t, u)
+            
+            
             x_ = obj.X_(obj.flagin);
             y_ = obj.Y_(obj.flagin);
             
             n_ = length(u); nhalf_ = n_/2;
             u1_ = u(1:nhalf_); u2_ = u(nhalf_+1:end);
             u0 = [u1_(obj.flagin); u2_(obj.flagin)];
+            Uind = [obj.flagin(:); obj.flagin(:)];
             
             f1 = @(t) obj.forcingTerm{1}(t, x_, y_, obj.a, obj.b, obj.c, obj.d);
             f2 =  @(t) obj.forcingTerm{2}(t, x_, y_, obj.a, obj.b, obj.c, obj.d);
@@ -80,10 +83,13 @@ classdef ReactionDiffusion2D < handle
             u1_ = u0(1:obj.nn);
             u2_ = u0(obj.nn+1:end);
             
-            recTerm = [u1.*u2; u1.*u2];
+            recTerm = [u1_.*u2_; u1_.*u2_];
             forcingTerm_ = [f1(t); f2(t)];
             
             F = obj.B*u0 + obj.F.*recTerm + forcingTerm_;
+            
+            FF = zeros(size(u));
+            FF(Uind) = F;
             
         end % flux
         
@@ -110,7 +116,10 @@ classdef ReactionDiffusion2D < handle
             obj.B = B_;
             
             %dfdx.L = @(t, y) obj.flux( t, u);
-            keyboard
+            obj.f = @(t, u) obj.flux( t, u);
+            obj.em = @(u) ones(size(u));
+            
+            %keyboard
         end % initialize
         
        

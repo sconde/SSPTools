@@ -27,22 +27,35 @@ classdef ERK < SSPTools.Steppers.RK
             addParameter(p, 'isLowStorage', false);
             p.parse(varargin{:});
 
-            if isa(obj.y0, 'function_handle')
-                obj.u0 = obj.y0(obj.x);
-                obj.n = size(obj.x,1);
-            else
-                obj.u0 = obj.y0;
+            
+            if obj.ExplicitProblem.isSystem
+                U1 = obj.y0{1}(obj.dfdx.x, obj.dfdx.y, 0);
+                U2 = obj.y0{2}(obj.dfdx.x, obj.dfdx.y, 0);
+                obj.u0 = [U1(:); U2(:)];
                 obj.n = size(obj.u0,1);
+                
+                assert(isequal(obj.ExplicitProblem.systemSize, 2),...
+                    'CodeLimitation: Only working for 2D at the moment');
+            else
+                
+                if isa(obj.y0, 'function_handle')
+                    obj.u0 = obj.y0(obj.x);
+                    obj.n = size(obj.x,1);
+                else
+                    obj.u0 = obj.y0;
+                    obj.n = size(obj.u0,1);
+                end
             end
             
             obj.name = p.Results.name;
             obj.Y = zeros(obj.n, obj.s);
             obj.Fvec = zeros(obj.n, obj.s);
             
-            if isa(obj.dfdx, 'WenoCore.Weno')
+            if isa(obj.dfdx, 'WenoCore.Weno') || ( obj.ExplicitProblem.systemSize > 1)
                 obj.dfdx.f = obj.ExplicitProblem.f;
                 obj.dfdx.em = obj.ExplicitProblem.em;
             end
+            
         end % end constructor
         
         

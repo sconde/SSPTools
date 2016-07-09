@@ -11,12 +11,15 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
         systemSize;
         direction;
         flagin;
+        f;
+        em;
     end
     
     properties (Access = private)
        domainStencil; 
        orderAccuracy;
        stencilSize;
+       isInitialized = false;
     end
     
     methods
@@ -58,30 +61,39 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
             end
             
             
-            if ~obj.problem.isSystem
-                
-                obj.domain = p.Results.domain;
-                obj.nx = p.Results.N;
-                
-                if ~isempty(obj.domain)
-                    obj.x = linspace(obj.domain(1),obj.domain(2),obj.nx);
-                    obj.dx = obj.x(2) - obj.x(1);
-                end
-                
-                obj.systemSize = 1;
-            else
-                obj.dx      = obj.problem.dx;
-                obj.x       = obj.problem.x;
-                obj.nx       = obj.problem.N;
-                obj.domain  = obj.problem.domain;
-                obj.systemSize = obj.problem.systemSize;
+            obj.domain = p.Results.domain;
+            obj.nx = p.Results.N;
+            
+            if ~isempty(obj.domain)
+                obj.x = linspace(obj.domain(1),obj.domain(2),obj.nx);
+                obj.dx = obj.x(2) - obj.x(1);
             end
             
-            obj.nx = numel(obj.x);
-            obj.x = obj.x(:);
             
-            obj.D = obj.initialize();
-            keyboard
+            if ~obj.problem.isSystem
+                obj.systemSize = 1;
+            else
+                
+                if ~isa(obj.problem, 'TestProblems.PDEs.ReactionDiffusion2D')
+                    obj.dx      = obj.problem.dx;
+                    obj.x       = obj.problem.x;
+                    obj.nx       = obj.problem.N;
+                    obj.domain  = obj.problem.domain;
+                    obj.systemSize = obj.problem.systemSize;
+                else
+                    
+                    % initialize the discretizer
+                    obj.initialize();
+                    
+                    % now initialize the 2D systems
+                    
+                    %call the problem initialize method
+                    obj.problem.initialize(obj);
+                    %keyboard
+                end
+            end
+            
+            obj.initialize();
         end % end constructor
         
     end
@@ -103,30 +115,38 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
     
     methods (Access = private)
         
-        function T_ = initialize(obj)
+        function initialize(obj)
             
-            periodic_ = ~strcmpi('non-periodic',obj.bc);
-                        
-            T_ = diffMatix(obj, obj.derivativeOrder, obj.orderAccuracy, ...
-                obj.nx, periodic_, obj.domainStencil)';
-            T_ = T_/obj.dx;
-            
-            % for 2D case
-            if obj.dimN > 1
-                % at the moment, just assume square, structured grid
-                obj.domain = repmat(obj.domain,obj.dimN,1);
-                obj.y = obj.x;
-                obj.dy = obj.dx;
+            if ~obj.isInitialized
                 
-                [X, Y] = meshgrid(obj.x, obj.y);
-                flagin_ = false(size(X));
-                flagin_(2:end-1, 2:end-1) = true;
-                flagin_ = flagin_(:);
-                I_ = speye(obj.nx);
-                T_ = kron(T_, I_) + kron(I_, T_);
-                obj.x = X;
-                obj.y = Y;
-                obj.flagin = flagin_;
+                obj.nx = numel(obj.x);
+                obj.x = obj.x(:);
+                
+                periodic_ = ~strcmpi('non-periodic',obj.bc);
+                
+                T_ = diffMatix(obj, obj.derivativeOrder, obj.orderAccuracy, ...
+                    obj.nx, periodic_, obj.domainStencil)';
+                T_ = T_/obj.dx;
+                
+                % for 2D case
+                if obj.dimN > 1
+                    % at the moment, just assume square, structured grid
+                    obj.domain = repmat(obj.domain,obj.dimN,1);
+                    obj.y = obj.x;
+                    obj.dy = obj.dx;
+                    
+                    [X, Y] = meshgrid(obj.x, obj.y);
+                    flagin_ = false(size(X));
+                    flagin_(2:end-1, 2:end-1) = true;
+                    flagin_ = flagin_(:);
+                    I_ = speye(obj.nx);
+                    T_ = kron(T_, I_) + kron(I_, T_);
+                    obj.x = X;
+                    obj.y = Y;
+                    obj.flagin = flagin_;
+                    obj.isInitialized = true;
+                end
+                obj.D = T_;
             end
             
         end % initialize
