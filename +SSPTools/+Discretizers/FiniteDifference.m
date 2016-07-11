@@ -103,9 +103,7 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
         function [y] = L(obj, t, y)
             
             % why is this being called??
-            
-            keyboard
-            
+                        
             yx = zeros(size(y));
             IDX = obj.nx*[0:obj.systemSize-1 ; 1:obj.systemSize]';
             IDX = IDX + [ones(size(IDX(:,1))) zeros(size(IDX(:,1)))];
@@ -128,17 +126,20 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
                 obj.x = obj.x(:);
                 
                 periodic_ = ~strcmpi('non-periodic',obj.bc);
-                
-                %T_ = diffMatix(obj, obj.derivativeOrder, obj.orderAccuracy, ...
-                %    obj.nx, periodic_, obj.domainStencil)';
-                %T_ = T_/obj.dx;
 
-				one = ones(obj.nx , 1);
-                D2 = spdiags([one -2*one one], -1:1, obj.nx , obj.nx);
-                D2(1, 1:4) = [2 -5 4 -1];
-                D2(end, end - 3:end) = [-1 4 -5 2];
-                D2= 1/(obj.dx^obj.derivativeOrder)*D2;
-                T_ = D2;
+                if obj.derivativeOrder == 2
+                    one = ones(obj.nx , 1);
+                    D2 = spdiags([one -2*one one], -1:1, obj.nx , obj.nx);
+                    D2(1, 1:4) = [2 -5 4 -1];
+                    D2(end, end - 3:end) = [-1 4 -5 2];
+                    D2= 1/(obj.dx^obj.derivativeOrder)*D2;
+                    T_ = D2;
+                else
+                    T_ = diffMatix(obj, obj.derivativeOrder, obj.orderAccuracy, ...
+                        obj.nx, periodic_, obj.domainStencil)';
+                    T_ = T_/obj.dx;
+                end
+
 
                 
                 % for 2D case
