@@ -146,6 +146,7 @@ classdef RK < handle
         end
         
         function [t, y, nextDt] = getState(obj)
+            
             y = obj.u0;
             t = obj.t;
             nextDt = obj.dt_;

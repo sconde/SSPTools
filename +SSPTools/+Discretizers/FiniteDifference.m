@@ -129,27 +129,35 @@ classdef FiniteDifference < SSPTools.Discretizers.Discretize
                 
                 periodic_ = ~strcmpi('non-periodic',obj.bc);
                 
-                T_ = diffMatix(obj, obj.derivativeOrder, obj.orderAccuracy, ...
-                    obj.nx, periodic_, obj.domainStencil)';
-                T_ = T_/obj.dx;
+                %T_ = diffMatix(obj, obj.derivativeOrder, obj.orderAccuracy, ...
+                %    obj.nx, periodic_, obj.domainStencil)';
+                %T_ = T_/obj.dx;
+
+				one = ones(obj.nx , 1);
+                D2 = spdiags([one -2*one one], -1:1, obj.nx , obj.nx);
+                D2(1, 1:4) = [2 -5 4 -1];
+                D2(end, end - 3:end) = [-1 4 -5 2];
+                D2= 1/(obj.dx^obj.derivativeOrder)*D2;
+                T_ = D2;
+
                 
                 % for 2D case
                 if obj.dimN > 1
-                    % at the moment, just assume square, structured grid
-                    obj.domain = repmat(obj.domain,obj.dimN,1);
-                    obj.y = obj.x;
-                    obj.dy = obj.dx;
-                    
-                    [X, Y] = meshgrid(obj.x, obj.y);
-                    flagin_ = false(size(X));
-                    flagin_(2:end-1, 2:end-1) = true;
-                    flagin_ = flagin_(:);
-                    I_ = speye(obj.nx);
-                    T_ = kron(T_, I_) + kron(I_, T_);
-                    obj.x = X;
-                    obj.y = Y;
-                    obj.flagin = flagin_;
-                    obj.isInitialized = true;
+                   % at the moment, just assume square, structured grid
+                   obj.domain = repmat(obj.domain,obj.dimN,1);
+                   obj.y = obj.x;
+                   obj.dy = obj.dx;
+                   
+                   [X, Y] = meshgrid(obj.x, obj.y);
+                   flagin_ = false(size(X));
+                   flagin_(2:end-1, 2:end-1) = true;
+                   flagin_ = flagin_(:);
+                   I_ = speye(obj.nx);
+                   T_ = kron(T_, I_) + kron(I_, T_);
+                   obj.x = X;
+                   obj.y = Y;
+                   obj.flagin = flagin_;
+                   obj.isInitialized = true;
                 end
                 obj.D = T_;
             end
