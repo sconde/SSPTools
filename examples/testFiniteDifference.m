@@ -15,8 +15,9 @@ y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
 
 imp_pro = TestProblems.PDEs.LinearAdvection('a', 1);
 
+keybpard
 dfdx = SSPTools.Discretizers.FiniteDifference('derivativeOrder',1, 'N', N,...
-    'Problem', imp_pro, 'Domain', [-1 1], 'bc', 'periodic', 'OrderAccuracy', 1, 'Direction', 'CD');
+    'Problem', imp_pro, 'Domain', [-1 1], 'bc', 'periodic', 'OrderAccuracy', 1, 'Direction', 'CD', 'Dimension', 2);
 
 dudt = SSPTools.Steppers.ERK('A', A, 'b',b, 's', s,...
     'dfdx', dfdx, 'y0', y0);
