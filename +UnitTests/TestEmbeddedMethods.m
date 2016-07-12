@@ -24,7 +24,7 @@ classdef TestEmbeddedMethods < matlab.unittest.TestCase
             
             dudt = SSPTools.Steppers.LoadEmbeddedERK('MethodName','DormandPrince54',...
                 'ODE', aren, 'y0', y0, 'RelativeTolerance', 1e-7, 'AbsoluteTolerance', 1e-7,...
-                'InitialStepSize', [],'VariableStepSize', true, 'Tfinal', Tfinal);
+                'InitialStepSize', [],'VariableStepSize', true, 'Tfinal', Tfinal,'UseNew', false);
             [t, ~, dt, ~, ~] = dudt.getState();
             
             while t < Tfinal
