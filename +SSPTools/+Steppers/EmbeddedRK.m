@@ -178,7 +178,7 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
                 obj.u0 = obj.y0;
             end
             obj.t = 0.0;
-
+            
             obj.relTol = tol;
             obj.absTol = tol;
             obj.nfcn = 0;
