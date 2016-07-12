@@ -7,6 +7,34 @@ More information about SSP methods and current researh projects can be found at 
 
 Please check out [SSP_Tools](https://github.com/DanielHiggs/SSP_Tools),the first version written by Dan Higgs.
 
+MATLAB R2013b or newer is required for the `addParameter` functions used in the definition of the classes.
+
+## Integrator
+* Runge-Kutta Method (using the Butcher Tableau)
+	- ERK (Explicit Runge-Kutta)
+	- DIRK (Diagonally Implicit Runge-Kutta)
+
+## Discretizers
+* Finite Difference Method
+	- Specify stencil direction 
+		1. CD - Central Difference
+		2. FD - Forward Difference
+		3. BD - Backward Difference
+	- [Now allows for different order of accuracy, for either directions](https://en.wikipedia.org/wiki/Finite_difference_coefficient)
+* NDG (Nodal Discontinuous Galerkin)
+	- Only tested for:
+		1. Linear Advection
+		2. Burgers
+* WENO ( Weighted Essentially
+Non-Oscillatory Schemes)
+	- Only WENO5 is working for:
+		1. Advection
+		2. Burgers
+
+## Tests
+* Convergence
+* SSP
+
 ### What is this repository for? ###
 
 * Quick summary
@@ -25,6 +53,7 @@ Please check out [SSP_Tools](https://github.com/DanielHiggs/SSP_Tools),the first
 ### Contribution guidelines ###
 
 * Writing tests
+	- please write unit tests and make sure that all previously written unit tests are running and `passing!!`
 * Code review
 * Other guidelines
 
