@@ -41,6 +41,7 @@ classdef SSP < Tests.Test
         function obj = SSP(varargin)  %constructor
             obj = obj@Tests.Test(varargin{:});
             
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%% begin parsing the variables
             p = inputParser;
             p.KeepUnmatched = true;
             p.addParameter('cfl', 0.2);
@@ -57,9 +58,7 @@ classdef SSP < Tests.Test
             p.addParameter('Tolerance', 1e-5);
             p.addParameter('r', 1);
             p.parse(varargin{:});
-            
-            %obj = obj@Tests.Test(varargin{:});
-            
+                        
             obj.cfl = p.Results.cfl;
             obj.t = p.Results.t;
             obj.verbose = p.Results.verbose;
@@ -72,13 +71,12 @@ classdef SSP < Tests.Test
             obj.cflRefine = p.Results.CFLRefinement;
             obj.theortical_r = p.Results.r;
             obj.tol = p.Results.Tolerance;
+            obj.dudt = p.Results.integrator;
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%% finish parsing the variables
             
-            %TODO: is this correct?
-            %assert(any([obj.testTVD obj.testTVB]),'Must choice TVD or TVB');
-            
+
             
             %TODO : a better way to test for the problem
-            obj.dudt = p.Results.integrator;
             obj.DT = obj.dudt.dfdx.dx*obj.cfl;
             [~, y] = obj.dudt.getState();
             obj.initTV = obj.calcTV(y);
@@ -93,7 +91,6 @@ classdef SSP < Tests.Test
         
         function initialize(obj)
             obj.startingr = min(obj.theortical_r/2,.005);
-            %obj.sp = min(obj.theortical_r/10,.005);
             obj.lambda = linspace(obj.startingr, obj.theortical_r + 0.5, 10);
             obj.cfl_refinement = max(diff(obj.lambda));
         end
@@ -111,20 +108,20 @@ classdef SSP < Tests.Test
             obj.acc = -5;
             numRefinement = 0;
             while obj.cfl_refinement > obj.tol
+                                
+                % run for a range of cfl
                 Violation_ = obj.runRange(lambda_);
                 
                 L = [L,lambda_];
                 VV_ = [VV_, Violation_];
                 
                 
-                % find the first violation
-                %ind = find(log10(Violation_) > obj.acc, 1, 'first');
+                % find the first violation ( if any )
                 ind = find(log10(VV_) > -12, 1, 'first');
                 
                 if isempty(ind);  %If the observed CFL is outside original range
                     maxL = max(lambda_);
-                    %lambda_ = linspace(maxL - 0.2, maxL + 0.2,10);
-                    lambda_ = linspace(maxL - 0.2, maxL + 0.2,5);
+                    lambda_ = linspace(maxL - 1, maxL + 1,11);
                 else
 
                     Ltemp = sort(L);
@@ -134,14 +131,15 @@ classdef SSP < Tests.Test
                      lambda_ = sort(linspace(Ltemp(ind_ - 1), Ltemp(ind_) , 5));
                     else
                         newL = Ltemp(ind_);
-                        lambda_ = max(0,linspace(newL-0.1,newL+0.1,10)); % need to make sure this is all positive
+                        % need to make sure this is all positive
+                        lambda_ = max(0,linspace(newL-0.1,newL+0.1,10)); 
                     end
                 end
                 obj.cfl_refinement = max(abs(diff(lambda_)));
                 obj.acc = min(obj.acc, floor(log10(obj.cfl_refinement)) - 1) ;
                 acct = obj.acc;
                 numRefinement = numRefinement + 2;
-                ref = obj.cfl_refinement;
+                ref = obj.cfl_refinement
                 lambda_;
             end
             
@@ -157,6 +155,7 @@ classdef SSP < Tests.Test
             
             Violation_ = inf(1, length(lambda));
             nSteps = obj.Steps;
+            
             for i = 1:numel(lambda);
                 dt = lambda(i)*obj.dudt.dfdx.dx;
                 
@@ -178,7 +177,7 @@ classdef SSP < Tests.Test
                     if log10(maxDiff) > obj.acc
                         break
                     end
-                    
+                                        
                 catch err
                     break
                 end
