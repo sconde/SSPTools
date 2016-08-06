@@ -101,6 +101,11 @@ classdef IMEXRK < SSPTools.Steppers.RK
                 obj.F = @(t,y) obj.dfdx.L(t,y);
                 obj.G = @(t,y) obj.dgdx.L(t,y);
                 obj.DT = -obj.ImplicitProblem.nu*obj.dgdx.D;
+            elseif isa(obj.ImplicitProblem, 'TestProblems.PDEs.LinearAdvection')
+                obj.solver = @(y, dt, i) linearSolve(obj, y, dt,i);
+                obj.F = @(t,y) obj.dfdx.L(t,y);
+                obj.G = @(t,y) obj.dgdx.L(t,y);
+                obj.DT = obj.ImplicitProblem.a*obj.dgdx.D;
             else
                 obj.solver = @(y, dt, i) nonlinearImplicitStage( obj, y, dt, i );
                 obj.F = @(t,y) obj.dfdx.L(t,y);
