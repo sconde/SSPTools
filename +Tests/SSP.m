@@ -91,7 +91,8 @@ classdef SSP < Tests.Test
         
         function initialize(obj)
             obj.startingr = min(obj.theortical_r/2,.005);
-            obj.lambda = linspace(obj.startingr, obj.theortical_r + 0.5, 10);
+            %obj.lambda = linspace(obj.startingr, obj.theortical_r + 0.5, 10);
+            obj.lambda = linspace(obj.startingr, min(obj.theortical_r/2, 0.1),20);
             obj.cfl_refinement = max(diff(obj.lambda));
         end
         
@@ -108,7 +109,7 @@ classdef SSP < Tests.Test
             obj.acc = -5;
             numRefinement = 0;
             while obj.cfl_refinement > obj.tol
-                                
+                                                
                 % run for a range of cfl
                 Violation_ = obj.runRange(lambda_);
                 
@@ -121,25 +122,25 @@ classdef SSP < Tests.Test
                 
                 if isempty(ind);  %If the observed CFL is outside original range
                     maxL = max(lambda_);
-                    lambda_ = linspace(maxL - 1, maxL + 1,11);
+                    lambda_ = linspace(maxL , maxL + 1,21);
                 else
-
+                    
                     Ltemp = sort(L);
                     ind_ = find(Ltemp == L(ind),1,'first');
                     
                     if ind_ > 1
-                     lambda_ = sort(linspace(Ltemp(ind_ - 1), Ltemp(ind_) , 5));
+                        lambda_ = sort(linspace(Ltemp(ind_ - 2), Ltemp(ind_+1) , 21));
                     else
                         newL = Ltemp(ind_);
                         % need to make sure this is all positive
-                        lambda_ = max(0,linspace(newL-0.1,newL+0.1,10)); 
+                        lambda_ = max(0,linspace(newL-0.5,newL+0.5,15));
                     end
                 end
                 obj.cfl_refinement = max(abs(diff(lambda_)));
                 obj.acc = min(obj.acc, floor(log10(obj.cfl_refinement)) - 1) ;
                 acct = obj.acc;
                 numRefinement = numRefinement + 2;
-                ref = obj.cfl_refinement
+                ref = obj.cfl_refinement;
                 lambda_;
             end
             
@@ -193,15 +194,27 @@ classdef SSP < Tests.Test
         end
         
         function calculateSSP(obj)
+                        
             obj.log10VV = log10(obj.TV);
+            
+            % to help sort the CFL vector
+            % and pinpoint the observed SSP correctly
+            
+            temp_v = [obj.CFL; obj.log10VV]';
+            temp_v1 = sortrows(temp_v,1);
+            
+            obj.log10VV = temp_v1(:,2);
+            obj.CFL = temp_v1(:,1);
+            
             extremeInd = obj.log10VV >= 0;
             obj.log10VV(extremeInd) = 0;
-            
+                        
             % get the index of last stable cfl (this is the observed SSP)
-            indGood = obj.log10VV <= -14;
+            indGood = obj.log10VV <= -12;
             goodSSPInd = find(indGood, 1, 'last');
             obj.ssp = obj.CFL(goodSSPInd);
-        end
+            
+        end % calculateSSp
     end
     
     methods %(Access = protected)
