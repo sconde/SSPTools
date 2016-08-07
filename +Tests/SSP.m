@@ -196,8 +196,7 @@ classdef SSP < Tests.Test
             
             % to help sort the CFL vector
             % and pinpoint the observed SSP correctly
-            
-            temp_v = [obj.CFL; obj.log10VV]';
+            temp_v = [obj.CFL(:) obj.log10VV(:)];
             temp_v1 = sortrows(temp_v,1);
             
             obj.log10VV = temp_v1(:,2);
