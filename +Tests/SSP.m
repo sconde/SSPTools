@@ -55,7 +55,7 @@ classdef SSP < Tests.Test
             p.addParameter('TVD', false);
             p.addParameter('CFLMAX', 1.5);
             p.addParameter('CFLRefinement',0.1);
-            p.addParameter('Tolerance', 1e-5);
+            p.addParameter('Tolerance', 1e-12);
             p.addParameter('r', 1);
             p.parse(varargin{:});
                         
@@ -155,7 +155,7 @@ classdef SSP < Tests.Test
             
             Violation_ = inf(1, length(lambda));
             nSteps = obj.Steps;
-            
+                        
             for i = 1:numel(lambda);
                 dt = lambda(i)*obj.dudt.dfdx.dx;
                 
@@ -172,17 +172,15 @@ classdef SSP < Tests.Test
                     end
                     maxDiff = max([diff(TV_),1e-15]);
                     Violation_(i) = maxDiff;
-                    log10(maxDiff); %TODO: delete this line
 
-                    if log10(maxDiff) > obj.acc
-                        break
-                    end
+                    if log10(maxDiff) > obj.acc; break; end
                                         
                 catch err
                     break
-                end
-            end
-        end
+                end % try
+            end % for i = 1:numel(lambda);
+            
+        end % Violation_ = runRange(obj, lambda)
                     
         function [ output ] = run_test(varargin) end
         
@@ -206,7 +204,6 @@ classdef SSP < Tests.Test
             obj.CFL = temp_v1(:,1);
             
             extremeInd = obj.log10VV >= 0;
-            %obj.log10VV(extremeInd) = 0;
             obj.log10VV(extremeInd) = NaN;
                         
             % get the index of last stable cfl (this is the observed SSP)
@@ -214,7 +211,7 @@ classdef SSP < Tests.Test
             goodSSPInd = find(indGood, 1, 'last');
             obj.ssp = obj.CFL(goodSSPInd);
             
-        end % calculateSSp
+        end % calculateSSP
     end
     
     methods %(Access = protected)
