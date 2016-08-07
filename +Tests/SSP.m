@@ -91,7 +91,6 @@ classdef SSP < Tests.Test
         
         function initialize(obj)
             obj.startingr = min(obj.theortical_r/2,.005);
-            %obj.lambda = linspace(obj.startingr, obj.theortical_r + 0.5, 10);
             obj.lambda = linspace(obj.startingr, min(obj.theortical_r/2, 0.1),20);
             obj.cfl_refinement = max(diff(obj.lambda));
         end
@@ -207,7 +206,8 @@ classdef SSP < Tests.Test
             obj.CFL = temp_v1(:,1);
             
             extremeInd = obj.log10VV >= 0;
-            obj.log10VV(extremeInd) = 0;
+            %obj.log10VV(extremeInd) = 0;
+            obj.log10VV(extremeInd) = NaN;
                         
             % get the index of last stable cfl (this is the observed SSP)
             indGood = obj.log10VV <= -12;
