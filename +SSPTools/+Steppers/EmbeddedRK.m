@@ -10,10 +10,10 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
         posneg;
         nfcn = 0;
         nstep = 0;
+        bhat; % embedding weight vector
     end
 
     properties (Access = protected)%(Access = private)   
-        bhat; % embedding weight vector
         isEmbedded = true; % using adaptive step
         isVariableStep = false;
         rejectedStep = 0;
