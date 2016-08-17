@@ -41,7 +41,8 @@ classdef LoadEmbeddedERK < SSPTools.Steppers.EmbeddedERK
                 p = 3; phat = 2;
                 A = [0 0 0 0;1/2 0 0 0;0 3/4 0 0;2/9 1/3 4/9 0];
                 b = A(4,:); bhat = [7/24 1/4 1/3 1/8];
-            elseif strcmpi(inpPar.Results.MethodName, 'zonneveld43') % Really slow
+            elseif strcmpi(inpPar.Results.MethodName, 'zonneveld43') 
+                % TODO: Really slow ( doesnt satisfy the order condition )
                 % Solving Ordinary Differential Equation I
                 % Hairer, pg167. table 4.1
                 p = 4; phat = 3;
