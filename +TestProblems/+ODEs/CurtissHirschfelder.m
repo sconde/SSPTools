@@ -1,5 +1,8 @@
 classdef CurtissHirschfelder < TestProblems.ODEs.ODE
-    
+% A First Course in the Numerical Analysis of Differential Equations (Second Edition)
+% Arieh Iserles, University of Cambridge
+% Page 107, equation 6.4
+
     properties
         isLinear;
         exact;
