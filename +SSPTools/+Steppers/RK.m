@@ -214,7 +214,6 @@ classdef RK < handle
             t = obj.t;
             nextDt = obj.dt_;
            
-                        
             if ~isempty(obj.dfdx) && (obj.dfdx.systemSize > 1)
                 y = reshape(y, obj.dfdx.nx, obj.dfdx.systemSize);
             end

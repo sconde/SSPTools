@@ -17,6 +17,7 @@ classdef Weno < handle
         rgpts_inx; % right ghost point index
         xx_inx; % all the indeces
         problem;
+        systemSize =1;
     end
     
     properties (Access = protected)
