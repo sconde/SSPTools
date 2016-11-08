@@ -14,7 +14,6 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
     end
     
     properties (Access = protected)%(Access = private)
-        isEmbedded = true; % using adaptive step
         isVariableStep = false;
         rejectedStep = 0;
         acceptedStep = 0;
@@ -78,6 +77,7 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             
             inpPar.parse(varargin{:});
             
+            obj.isEmbedded = true; % using adaptive step
             obj.bhat = inpPar.Results.bhat;
             obj.phat = inpPar.Results.phat;
             obj.absTol = inpPar.Results.AbsoluteTolerance;

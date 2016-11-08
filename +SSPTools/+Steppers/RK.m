@@ -13,10 +13,12 @@ classdef RK < handle
         y0;
         t;
         isSSP;
+        Rz; % stability function
     end
     
     properties (Access = protected)
         steps = 1;
+        isEmbedded = false; % 
         L;
         CFL;
         dx;
@@ -123,6 +125,58 @@ classdef RK < handle
     end
     
     methods %( Access = protected )
+        
+        
+        function stabilityFunction(obj)
+            
+            syms z;
+            obj.Rz = 1 + z*transpose(obj.b)*sum(inv(eye(size(obj.A)) - z*obj.A),2);
+        end
+        
+        function fig = plotStability(obj, plot_range, np)
+            syms z;
+            xa = plot_range(1);
+            xb = plot_range(2);
+            ya = plot_range(3);
+            yb = plot_range(4);
+            
+            
+            nptsx = np;
+            nptsy = np;
+            xx = linspace(xa,xb,nptsx);
+            yy = linspace(ya,yb,nptsy);
+            [X,Y] = meshgrid(xx,yy);
+            Z = X + 1i*Y;
+            
+            Rval = eval(subs(obj.Rz, z, Z));
+            Rabs = abs(Rval);
+            %fig = figure('position',[100 100 850 600]);
+            fig = figure;
+            clf
+            %subplot(1,2,1);
+            surf(xx,yy,0*Rabs,Rabs,'EdgeColor','none')
+            %keyboard
+            view(2)
+            %colormap([.7 .7 1;1 1 1])
+            colormap([.7 .7 .7;1 1 1])   % grayscale
+            caxis([.99 1.01])
+            daspect([1 1 1])
+            hold on
+            contour(xx,yy,Rabs,[1 1],'k')
+            box on
+            hold off
+            %title('Region of absolute stability','FontSize',12)
+            % plot axes:
+            hold on
+            plot([xa xb],[0 0],'k')
+            plot([0 0],[ya yb],'k')
+            axis([xa xb ya yb])
+            set(gca,'FontSize',15)
+            set(gcf,'PaperPositionMode', 'manual', ...
+                'PaperUnits','centimeters', ...
+                'Paperposition',[1 1 28.7 20])
+            
+        end
         
         function butcherCoef(obj)
             %TODO: don't print the zeros
