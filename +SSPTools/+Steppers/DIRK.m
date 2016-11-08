@@ -80,17 +80,6 @@ classdef DIRK < SSPTools.Steppers.RK
     
     methods %( Access = protected )
         
-        function butcherCoef(obj)
-            %TODO: don't print the zeros
-            keyboard
-            if obj.isEmbedded
-                obj.printCoeff(obj.A, obj.b, obj.c, obj.bhat);
-            else
-                obj.printCoeff(obj.A, obj.b, obj.c);
-            end
-        end
-        
-        
         
         function [y, dt] = takeStep(obj, dt)
             % function [y, dt] = takeStep(dt)
