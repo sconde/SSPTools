@@ -43,6 +43,8 @@ classdef ERK < SSPTools.Steppers.RK
                 obj.dfdx.f = obj.ExplicitProblem.f;
                 obj.dfdx.em = obj.ExplicitProblem.em;
             end
+            
+            obj.verifyMethod();
         end % end constructor
         
         
@@ -72,6 +74,15 @@ classdef ERK < SSPTools.Steppers.RK
             y = u0 + dt*obj.Fvec*obj.b(:);
             obj.u0 = y;
             obj.t  = obj.t + dt;
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function verifyMethod(obj)
+            assert(isequal(tril(obj.A,-1),obj.A),...
+                'Method is not Explicit');
         end
         
     end

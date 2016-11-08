@@ -71,12 +71,25 @@ classdef DIRK < SSPTools.Steppers.RK
             else
                 obj.name = sprintf('RK(%d,%d)%d',obj.s, obj.p, obj.plin);
             end
-        end
+            
+            obj.verifyMethod();
+        end % DIRK contructor
         
         
     end
     
     methods %( Access = protected )
+        
+        function butcherCoef(obj)
+            %TODO: don't print the zeros
+            keyboard
+            if obj.isEmbedded
+                obj.printCoeff(obj.A, obj.b, obj.c, obj.bhat);
+            else
+                obj.printCoeff(obj.A, obj.b, obj.c);
+            end
+        end
+        
         
         
         function [y, dt] = takeStep(obj, dt)
@@ -122,6 +135,15 @@ classdef DIRK < SSPTools.Steppers.RK
             catch err
                 keyboard
             end
+        end
+        
+    end
+    
+        methods (Access = private)
+        
+        function verifyMethod(obj)
+            assert(isequal(tril(obj.A,0),obj.A),...
+                'Method is not Explicit');
         end
         
     end

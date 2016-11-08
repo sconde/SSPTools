@@ -178,6 +178,11 @@ classdef IMEXRK < SSPTools.Steppers.RK
             obj.u0 = y;
             obj.t = obj.t + dt;
         end
+
+
+        function stabilityFunction(obj)
+    		error('not yet implemented');    
+        end
         
     end
     

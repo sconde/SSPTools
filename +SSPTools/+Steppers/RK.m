@@ -13,7 +13,11 @@ classdef RK < handle
         y0;
         t;
         isSSP;
+    end
+    
+    properties % used for stability function
         Rz; % stability function
+        isStabilityFunctionComputed = false;
     end
     
     properties (Access = protected)
@@ -131,9 +135,15 @@ classdef RK < handle
             
             syms z;
             obj.Rz = 1 + z*transpose(obj.b)*sum(inv(eye(size(obj.A)) - z*obj.A),2);
+            obj.isStabilityFunctionComputed  = true;
         end
         
         function fig = plotStability(obj, plot_range, np)
+            
+            if ~obj.isStabilityFunctionComputed
+                obj.stabilityFunction;
+            end
+            
             syms z;
             xa = plot_range(1);
             xb = plot_range(2);
