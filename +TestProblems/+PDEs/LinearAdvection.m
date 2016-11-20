@@ -10,6 +10,7 @@ classdef LinearAdvection < handle
        a;
        em;
        isSystem = false;
+       systemSize = 1;
     end
     
     methods

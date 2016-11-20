@@ -8,6 +8,7 @@ classdef LinearDiffusion < handle
        isLinear = true;
        nu;
        isSystem = false;
+       systemSize = 1;
     end
     
     methods

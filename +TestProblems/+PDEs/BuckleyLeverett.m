@@ -8,6 +8,7 @@ classdef BuckleyLeverett < handle
        CFL_MAX = 1;
        isLinear = false;
        isSystem = false;
+       systemSize = 1;
     end
     
     methods
