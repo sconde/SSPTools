@@ -41,11 +41,14 @@ classdef Weno5 < WenoCore.Weno
             obj.lgpts_inx = (1:obj.md);
             obj.rgpts_inx = (obj.nx+1+obj.md):(obj.nx+2*obj.md);
             obj.xx_inx = [obj.lgpts_inx obj.mpts_inx obj.rgpts_inx];
-            obj.dx = 2/(obj.nx); % from [-1 1]
             
+            if obj.domain == [-1 1]
+                obj.dx = 2/(obj.nx); % from [-1 1]
+            end
+                        
             % setup the grid points
-            xx = (obj.xx_inx - (obj.md+1))*obj.dx;
-            obj.xx = (xx - 1)';
+            xx = (obj.xx_inx - (obj.md+obj.domain(2)))*obj.dx;
+            obj.xx = (xx - obj.domain(1))';
             obj.x = obj.xx(obj.mpts_inx);
             
             % what are these??
@@ -71,21 +74,45 @@ classdef Weno5 < WenoCore.Weno
     methods
         function [u_x] = L(obj, t, u)
             
+            
             % append the periodic boundary condition
-            u = obj.makeu(u);
-            
+            u0 = obj.makeu(u);
+                        
             % check that we are working with the right size first
-            assert(isequal(size(obj.xx), size(u)));
+            assert(isequal(size(obj.xx,1), size(u0,1)));
             
-            u = obj.applyBC(u);
-                       
-            em = max(obj.em(u));
-            f = obj.f(t, u);
+            % could do this better with cellfun/arrayfun
+            y1 = zeros(size(u0));
+            for ss = 1:obj.problem.systemSize
+                y1(:,ss) = obj.applyBC(u0(:,ss));
+            end
             
-            % get the two weno matrices
-            [Cn, Dn] = obj.wenokernel(f, u, em);
-            ff = f(obj.mpts_inx); uu = u(obj.mpts_inx);
-            u_x = 0.5*( Cn* ( ff + em*uu ) + Dn*( ff - em*uu ) )/obj.dx;
+            if obj.problem.isSystem
+                %FIXME: this is cheating
+                em = max(abs(y1));
+            else
+                em = max(obj.em(u));
+            end
+            
+            %keyboard
+            f = obj.f(t, y1(:));
+            
+            ff1 = reshape(f,[],obj.problem.systemSize);
+            
+            U_X = [];
+            for ss = 1:obj.problem.systemSize
+                
+                % get the two weno matrices
+                [Cn, Dn] = obj.wenokernel(ff1(:,ss), y1(:,ss), em(ss));
+                uu = y1(:,ss); uu = uu(obj.mpts_inx);
+                f1 = ff1(:,ss); ff = f1(obj.mpts_inx);
+                
+                %ff = f(obj.mpts_inx); %uu = u(obj.mpts_inx);
+                u_x = 0.5*( Cn* ( ff + em(ss)*uu ) + Dn*( ff - em(ss)*uu ) )/obj.dx;
+                U_X = [U_X u_x];
+            end
+            
+            u_x = U_X(:);
         end
     end
     

@@ -2,7 +2,7 @@ classdef Euler1D < handle
     
     properties
         name = 'Euler-1D';
-        f; % flux
+        %f; % flux
         haveExact = false;
         eqn;
         CFL_MAX = 1;
@@ -69,11 +69,11 @@ classdef Euler1D < handle
             obj.initialize();
         end % Euler1D constructor
         
-        function [p, k, maxvel] = closureModel(obj, u)
+        function [p, k, maxvel] = closureModel(obj, density, momentum, energy)
             % ideal gas law
-            density   = u(1:obj.N);
-            momentum  = u(obj.N+1:2*(obj.N));
-            energy   = u(2*(obj.N)+1:3*(obj.N));
+%             density   = u(1:obj.N);
+%             momentum  = u(obj.N+1:2*(obj.N));
+%             energy   = u(2*(obj.N)+1:3*(obj.N));
             
             p = (obj.gamma - 1)*(energy - 0.5*momentum.^2./density);
             
@@ -126,13 +126,15 @@ classdef Euler1D < handle
             
         end
         
-        function F = flux(obj,  y)
+        function F = f(obj, t, y)
             
-            density   = y(1:obj.N);
-            momentum  = y(obj.N+1:2*(obj.N));
-            energy   = y(2*(obj.N)+1:3*(obj.N));
+            nn = size(y,1)/obj.systemSize;
             
-            pressure = obj.closureModel(y);
+            density   = y(1:nn);
+            momentum  = y(nn+1:2*nn);
+            energy   = y(2*(nn)+1:3*(nn));
+            
+            pressure = obj.closureModel(density, momentum, energy);
             
             F = [momentum;                                  % rho*u
                 (momentum.^2./density + pressure);          % rho*u^2 + p

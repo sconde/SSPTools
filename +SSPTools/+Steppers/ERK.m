@@ -40,7 +40,7 @@ classdef ERK < SSPTools.Steppers.RK
             obj.Fvec = zeros(obj.n, obj.s);
             
             if isa(obj.dfdx, 'WenoCore.Weno')
-                obj.dfdx.f = obj.ExplicitProblem.f;
+                obj.dfdx.f = @(t,u) obj.ExplicitProblem.f(t,u);
                 obj.dfdx.em = obj.ExplicitProblem.em;
             end
             

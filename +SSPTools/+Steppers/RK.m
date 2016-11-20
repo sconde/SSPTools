@@ -214,8 +214,8 @@ classdef RK < handle
             t = obj.t;
             nextDt = obj.dt_;
            
-            if ~isempty(obj.dfdx) && (obj.dfdx.systemSize > 1)
-                y = reshape(y, obj.dfdx.nx, obj.dfdx.systemSize);
+            if ~isempty(obj.dfdx) && (obj.dfdx.problem.systemSize > 1)
+                y = reshape(y, [], obj.dfdx.problem.systemSize);
             end
             %             %Q = [r ru E];
             %             density   = u(1:obj.N);
