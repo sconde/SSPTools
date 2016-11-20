@@ -53,6 +53,7 @@ classdef Weno < handle
             addParameter(p,'kernel', []);
             addParameter(p, 'Problem', []);
             addParameter(p,'weno_fcn', @WenoCoreDan.weno_basic);
+            addParameter(p, 'x',[]);
             p.parse(varargin{:});
             
             obj.isSSP = p.Results.isSSP;
@@ -67,12 +68,16 @@ classdef Weno < handle
                 obj.problem = p.Results.Problem;
             end
             
-            if ~isempty(obj.domain)
+            if ~isempty(p.Results.x)
+                obj.x = p.Results.x;
+                obj.domain = [min(obj.x) max(obj.x)];
+            elseif isempty(obj.x) && ~isempty(obj.domain)
                 obj.x = linspace(obj.domain(1),obj.domain(2),obj.nx);
-                obj.dx = min(diff(obj.x));
-                obj.nx = numel(obj.x);
-                obj.x = obj.x(:);
             end
+            
+            obj.dx = min(diff(obj.x));
+            obj.nx = numel(obj.x);
+            obj.x = obj.x(:);
         end
         
         function set.f(obj,fin)
@@ -111,18 +116,46 @@ classdef Weno < handle
         
         function unew = makeu(obj, u)
             
+            if obj.problem.isSystem
+                y = reshape(u, obj.nx, obj.problem.systemSize);
+                unew = [];
+                for ss = 1:obj.problem.systemSize
+                    bc = [obj.problem.BCLvalue(ss) obj.problem.BCRvalue(ss)];
+                    unew = [unew obj.makeSmallU(y(:,ss), bc)];
+                end
+            else
+                unew = obj.makeSmallU(u);
+            end
+            %unew = unew(:);
+        end
+        
+        function unew = makeSmallU(obj, u, varargin)
+            
             unew = zeros(obj.np+obj.md,1);
+            % need to make sure the wrapping is good
             
             for i = obj.nstart:obj.np
                 unew(i)= u(i-obj.remove);
             end;
-            % periodic boundaries
-            for i = 1:obj.md
-                unew(obj.np+i) = unew(obj.nstart+i-1);
-            end;
-            for i = 1:obj.md
-                unew(obj.nstart-i)= unew(obj.np+1-i);
-            end;
+            
+            if ~isempty(varargin)
+                bc = varargin{1};
+                for i = 1:obj.md
+                    unew(obj.np+i) = bc(2);
+                end;
+                for i = 1:obj.md
+                    unew(obj.nstart-i)= bc(1);
+                end;
+            else
+                % periodic boundaries
+                for i = 1:obj.md
+                    unew(obj.np+i) = unew(obj.nstart+i-1);
+                end;
+                for i = 1:obj.md
+                    unew(obj.nstart-i)= unew(obj.np+1-i);
+                end;
+            end
+            
         end
             
             function [u_x] = weno_basic(obj,fp, fm)
