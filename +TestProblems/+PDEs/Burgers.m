@@ -10,6 +10,7 @@ classdef Burgers < handle
        em;
        isSystem = false;
        systemSize = 1;
+       xx;
     end
     
     methods
@@ -22,6 +23,10 @@ classdef Burgers < handle
             
             obj.em = @(u) u;
             
+        end
+        
+        function set.xx(obj, fin)
+            obj.xx = fin;
         end
     end
 end

@@ -75,9 +75,6 @@ classdef Euler1D < handle
         
         function [p, k, maxvel] = closureModel(obj, density, momentum, energy)
             % ideal gas law
-%             density   = u(1:obj.N);
-%             momentum  = u(obj.N+1:2*(obj.N));
-%             energy   = u(2*(obj.N)+1:3*(obj.N));
             
             p = (obj.gamma - 1)*(energy - 0.5*momentum.^2./density);
             

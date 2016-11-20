@@ -80,19 +80,18 @@ classdef LF < handle
             % function numFlux = numericalFlux(obj, u, v)
             
             % evaluate the flux
-            fu = obj.problem.flux(u);
-            fv = obj.problem.flux(v);
+            fu = obj.problem.f(0,u);
+            fv = obj.problem.f(0,v);
             numFlux = (fu + fv)/2 - maxvel/2*(v-u);
         end
         
         function FU = rhs(obj,maxvel, u) % acting like the L method?
             
-            keyboard
             %Q = [r ru E];
             density   = u(1:obj.problem.N);
             momentum  = u(obj.problem.N+1:2*(obj.problem.N));
             energy    = u(2*(obj.problem.N)+1:3*(obj.problem.N));
-            
+                        
             if strcmpi(obj.problem.ProblemType, 'sod')
                 % Extend data and assign boundary conditions
                 [~, re] = obj.BC(density, 'D', obj.problem.BCLvalue(1), 'D', obj.problem.BCRvalue(1));   % rho extended
@@ -115,8 +114,14 @@ classdef LF < handle
         function [t] = takeStep(obj, dt)
             % apply the boundary condition
             Q = obj.y0;
+            
+            nn = length(Q)/obj.problem.systemSize;
+            density   = Q(1:nn);
+            momentum  = Q(nn+1:2*(nn));
+            energy   = Q(2*(nn)+1:3*(nn));
 
-            [~, dt, maxvel] = obj.problem.closureModel(Q);
+            [~, dt, maxvel] = obj.problem.closureModel(density, ...
+                momentum, energy);
             
             dt = min(obj.tFinal - obj.t0, dt);
 %             if (obj.t0 + dt > obj.tFinal)

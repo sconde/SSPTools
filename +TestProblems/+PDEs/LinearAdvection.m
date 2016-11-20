@@ -11,6 +11,7 @@ classdef LinearAdvection < handle
        em;
        isSystem = false;
        systemSize = 1;
+       xx;
     end
     
     methods
@@ -27,6 +28,10 @@ classdef LinearAdvection < handle
             obj.CFL_MAX = abs(obj.a);
             obj.f = @(t, u) obj.a *u;
             obj.em = @(u) obj.a*ones(size(u));
+        end
+
+        function set.xx(obj, fin)
+            obj.xx = fin;
         end
     end
 end
