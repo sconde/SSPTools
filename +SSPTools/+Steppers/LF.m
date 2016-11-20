@@ -87,6 +87,7 @@ classdef LF < handle
         
         function FU = rhs(obj,maxvel, u) % acting like the L method?
             
+            keyboard
             %Q = [r ru E];
             density   = u(1:obj.problem.N);
             momentum  = u(obj.problem.N+1:2*(obj.problem.N));

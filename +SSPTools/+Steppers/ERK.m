@@ -42,6 +42,8 @@ classdef ERK < SSPTools.Steppers.RK
             if isa(obj.dfdx, 'WenoCore.Weno')
                 obj.dfdx.f = @(t,u) obj.ExplicitProblem.f(t,u);
                 obj.dfdx.em = obj.ExplicitProblem.em;
+                % set spatial conputational grid
+                obj.ExplicitProblem.xx = obj.dfdx.xx;
             end
             
             obj.verifyMethod();

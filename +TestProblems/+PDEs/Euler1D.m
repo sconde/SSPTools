@@ -12,7 +12,7 @@ classdef Euler1D < handle
         N;
         L;
         dx;
-        x;
+        x; xx;
         y0;
         isSystem = true;
         systemSize = 3;
@@ -68,6 +68,10 @@ classdef Euler1D < handle
             
             obj.initialize();
         end % Euler1D constructor
+        
+        function set.xx(obj,fin)
+            obj.xx = fin;            
+        end
         
         function [p, k, maxvel] = closureModel(obj, density, momentum, energy)
             % ideal gas law

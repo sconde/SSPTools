@@ -74,12 +74,11 @@ classdef Weno5 < WenoCore.Weno
     methods
         function [u_x] = L(obj, t, u)
             
-            
             % append the periodic boundary condition
             u0 = obj.makeu(u);
                         
             % check that we are working with the right size first
-            assert(isequal(size(obj.xx,1), size(u0,1)));
+            assert(isequal(size(obj.xx,1), size(u0,1)));            
             
             % could do this better with cellfun/arrayfun
             y1 = zeros(size(u0));
@@ -98,6 +97,7 @@ classdef Weno5 < WenoCore.Weno
             f = obj.f(t, y1(:));
             
             ff1 = reshape(f,[],obj.problem.systemSize);
+            assert(isequal(size(ff1), size(u0)), 'something is wrong');
             
             U_X = [];
             for ss = 1:obj.problem.systemSize
