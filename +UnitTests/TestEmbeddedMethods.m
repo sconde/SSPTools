@@ -33,12 +33,11 @@ classdef TestEmbeddedMethods < matlab.unittest.TestCase
                 [t, ~, nextDt, ~, ~] = dudt.getState();
                 
                 dt = min(nextDt, Tfinal - t);
-                %T = [T; t]; DT = [DT; dt]; Y = [Y y]; ERR = [ERR; err]; badDT = [badDT; bad_dt];
             end
             
-              testCase.assertThat(dudt.nrejct, IsEqualTo(22));
-              testCase.assertThat(dudt.naccpt, IsEqualTo(216));
-              testCase.assertThat(dudt.nfcn, IsEqualTo(1442));
+              testCase.assertThat(dudt.nrejct, IsEqualTo(23)); % 22
+              testCase.assertThat(dudt.naccpt, IsEqualTo(247)); %216
+              testCase.assertThat(dudt.nfcn, IsEqualTo(1634)); %1442
         end
         
 %         function testZonneveld43(testCase)

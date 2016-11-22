@@ -36,32 +36,30 @@ classdef EmbeddedERK < SSPTools.Steppers.EmbeddedRK
             % returns the new solution (y) and time-step taken (dt)
             
             u0 = obj.u0;
+            t_ = obj.t;
             obj.Y(:,1) = u0;
             obj.dt_ = dt;
+            obj.Fvec(:,1) = obj.L(t_ , u0);
             obj.nstep = obj.nstep + 1;
             
             % intermediate stage value
             for i = 2:obj.s
                 temp = u0;
                 for j = 1:i-1
-                    temp = temp + dt*obj.A(i,j)*obj.L(dt + obj.c(j), obj.Y(:,j));
+                    temp = temp + dt*obj.A(i,j)*obj.Fvec(:, j);
                 end
-                obj.Y(:,i) = temp;
+                obj.Fvec(:, i) = obj.L(t_ + obj.c(i)*dt, temp);
             end
             
             obj.nfcn = obj.nfcn + (obj.s-1);
             
-            y = u0;
-            for i = 1:obj.s
-                y = y + dt*obj.b(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
-            end
+            % combine
+            y = u0 + dt*obj.Fvec*obj.b(:);
             
             % compute the embedding solution
             if obj.isEmbedded % just to make sure
-                yhat = u0;
-                for i = 1:obj.s
-                    yhat = yhat + dt*obj.bhat(i)*obj.L(dt + obj.c(i), obj.Y(:,i));
-                end
+                % combine
+                yhat = u0 + dt*obj.Fvec*obj.bhat(:);
                 
                 [y, t] = obj.stepSizeControl(dt, y, yhat);
             else

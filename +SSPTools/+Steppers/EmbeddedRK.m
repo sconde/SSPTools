@@ -73,7 +73,7 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             addParameter(inpPar, 'Tfinal', 1);
             addParameter(inpPar, 'Beta', 0.04);
             addParameter(inpPar, 'Safety', 0.9);
-            addParameter(inpPar, 'UseNew', true);
+            addParameter(inpPar, 'UseNew', false);
             
             inpPar.parse(varargin{:});
             
@@ -225,14 +225,13 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
             % Automatic Step Size Control
             % Hairer. Solving ODE I. pg. 167
             
-            
             h = dt;
             lte = abs(y - yhat);
-            obj.lte_ = norm(lte, Inf);
+            %obj.lte_ = norm(lte, Inf);
+            obj.lte_ = norm(lte, 2);
             
             sk = obj.sci_fun(y, yhat);
-            err = sum((lte./sk).^2);
-            err = sqrt(err /length(y));
+            err = norm(lte./sk,2);
             
             %/* computation of hnew */
             obj.fac11 = err.^(obj.expo1);

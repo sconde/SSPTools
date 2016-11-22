@@ -1,36 +1,26 @@
+%Sidafa Conde
+%example of vanderpol ODE
 clear all; close all; clc
 
-% TODO: need to fix this
+% TODO: fix ODEs
 
-addpath('../')
-A = [0 0;1 0]; b = [1 0]; s = 2; %TODO: infert s from size(A,1)
-At = [0 0;0 1]; bt = [0 1];
-N = 100;
+addpath('../');
 
-dt = 0.01;
-Tfinal = 1;
+Tfinal = 20;
 t = 0;
 
-testing = 'ERK';
+y0 = [1.5; 3];
 
-y0 = @(x) heaviside(x - (ceil((x+1)/2) -1)*2);
-
-imp_pro = TestProblems.PDEs.LinearAdvection('a',1);
-
-dfdx = WenoCore.Weno5('N', N, 'domain', [-1, 1],...
-    'kernel', 'WENO5', 'epsilon', 1e-16, 'p', 2,'Problem', imp_pro);
+vdp = TestProblems.ODEs.Brusselator();
 
 dudt = SSPTools.Steppers.LoadEmbeddedERK('MethodName','38rule43',...
-    'dfdx', dfdx,'y0', y0,...
-    'RelativeTolerance', 1e-4, 'AbsoluteTolerance', 1e-4,...
+    'ODE', vdp, 'y0', y0, 'RelativeTolerance', 1e-4, 'AbsoluteTolerance', 1e-4,...
     'InitialStepSize', [],'VariableStepSize', true, 'Tfinal', Tfinal,...
-    'FacMax',5,'UseNew', false);
+    'FacMax',5);
 
 T = []; DT = []; Y = []; ERR = []; badDT = [];
 [t, y, dt, err, bad_dt] = dudt.getState();
 T = [T; t]; DT = [DT; dt]; Y = [Y y]; ERR = [ERR; err]; badDT = [badDT; bad_dt];
-
-line1 = plot(dfdx.x, y,'-r','linewidth',2);
 
 while t < Tfinal
     
@@ -38,14 +28,9 @@ while t < Tfinal
     [t, y, nextDt, err, bad_dt] = dudt.getState();
     dt = min(nextDt, Tfinal - t);
     T = [T; t]; DT = [DT; dt]; Y = [Y y]; ERR = [ERR; err]; badDT = [badDT; bad_dt];
-    
-    set(line1, 'ydata', y);
-    drawnow;
-    pause(0.1);
-    
+
 end
 
-close('all')
 % print the summary
 dudt.summary();
 
@@ -65,9 +50,17 @@ badT = T(~goodSol);
 T = T(goodSol);
 
 figure('Position',[100 100 1200 400]);
+% plotting the solution
+subplot(3,1,1);
+plot(T, Y(:,2), '-or')
+hold on
+plot(T, Y(:,1), '-pk')
+legend('y_1','y_2','location','southwest');
+title('Solution')
+xlim([0 Tfinal]);
 
 % plotting the step size taken at each time step
-subplot(2,1,1)
+subplot(3,1,2)
 semilogy(T, DT,'-s')
 hold on
 semilogy(T, mean(DT)*ones(size(T)),'--k')
@@ -77,7 +70,7 @@ title('Accepted Step Size')
 ylim([0 5]);
 
 % plotting the Error at each time-step
-subplot(2,1,2)
+subplot(3,1,3)
 semilogy(T, ERR,'-.k')
 hold on
 semilogy(T, 1e-4*ones(size(T)),'--')

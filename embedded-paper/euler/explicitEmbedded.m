@@ -2,8 +2,6 @@
 %example of vanderpol ODE
 clear all; close all; clc
 
-% TODO: fix ODEs
-
 addpath('../');
 
 Tfinal = 0.2;
@@ -26,9 +24,9 @@ T = []; DT = []; Y = []; ERR = []; badDT = [];
 T = [T; t]; DT = [DT; dt]; Y = [Y y]; ERR = [ERR; err]; badDT = [badDT; bad_dt];
 
 x = euler.x;
-subplot(3,1,1); rho_line = plot(x, y(:,1), '-r'); %axis([0 1 0 1]);
-subplot(3,1,2); vel_line = plot(x, y(:,2), '-k'); %axis([0 1 0 0.4]);
-subplot(3,1,3); p_line = plot(x, y(:,3), '-b'); %axis([0 1 0 3]);
+subplot(3,1,1); rho_line = plot(x, y(:,1), '-r'); axis([0 1 0 1]);
+subplot(3,1,2); vel_line = plot(x, y(:,2), '-k'); axis([0 1 -0.1 0.6]);
+subplot(3,1,3); p_line = plot(x, y(:,3), '-b'); axis([0 1 0 3]);
 
 
 while t < Tfinal
@@ -46,7 +44,6 @@ while t < Tfinal
 
 end
 
-keyboard
 close('all')
 % print the summary
 dudt.summary();
