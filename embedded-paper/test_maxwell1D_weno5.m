@@ -11,7 +11,6 @@ N = 100;
 dt = 0.01;
 Tfinal = 1;
 
-%euler = TestProblems.PDEs.Euler1D('ProblemType', 'Sod','N',N);
 maxwell = TestProblems.PDEs.Maxwell1D('ProblemType', 'Cavity','N',N);
 
 dfdx = WenoCore.Weno5('x',maxwell.x,...

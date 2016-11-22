@@ -209,8 +209,8 @@ classdef EmbeddedRK <  SSPTools.Steppers.ERK
                 bad_dt = NaN;
             end
             
-            if ~isempty(obj.dfdx) && (obj.dfdx.systemSize > 1)
-                y = reshape(y, obj.dfdx.nx, obj.dfdx.systemSize);
+            if ~isempty(obj.dfdx) && (obj.dfdx.problem.systemSize > 1)
+                y = reshape(y, [], obj.dfdx.problem.systemSize);
             end
         end
     end

@@ -9,7 +9,9 @@ addpath('../');
 addpath('~/Dropbox/SSPTools/');
 
 %LISTOFMETHOD = {'DormandPrince54', 'Merson45', 'Zonneveld43','Felhberg45','38rule43', 'SSPEmbeddedRK'};
-LISTOFMETHOD = {'DormandPrince54', 'Merson45','Felhberg45','38rule43', 'SSPEmbeddedRK'};
+%LISTOFMETHOD = {'DormandPrince54', 'Merson45','Felhberg45','38rule43', 'SSPEmbeddedRK'};
+LISTOFMETHOD = {'DormandPrince54', 'Merson45','Felhberg45','38rule43'};
+
 
 rtol = 1e-6;
 atol = rtol;

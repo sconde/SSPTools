@@ -12,7 +12,6 @@ Tfinal = 2;
 t = 0;
 
 testing = 'euler';
-%testing = 'burgers'
 
 if strcmpi(testing, 'euler')
     
